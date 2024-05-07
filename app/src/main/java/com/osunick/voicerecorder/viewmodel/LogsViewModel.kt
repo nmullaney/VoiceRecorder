@@ -1,5 +1,6 @@
 package com.osunick.voicerecorder.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -7,13 +8,20 @@ import androidx.paging.cachedIn
 import com.osunick.voicerecorder.data.VoiceMessageRepository
 import com.osunick.voicerecorder.model.VoiceMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+
 
 @HiltViewModel
 class LogsViewModel @Inject constructor(
@@ -64,6 +72,27 @@ class LogsViewModel @Inject constructor(
             eventsFlow.emit(LogEvent.None)
         }
     }
+
+    suspend fun createFile(logsDir: File): File =
+        withContext(Dispatchers.IO) {
+            val logFile = File.createTempFile("logs", ".txt", logsDir)
+            val fos = FileOutputStream(logFile, false)
+            try {
+                messageRepository.getAllMessages().forEach {
+                    val line = "${format(it.dateTime)}, ${it.text}\n"
+                    fos.write(line.toByteArray())
+                }
+            } catch (ioe: IOException) {
+                Log.e("CreateFile", "Something went wrong", ioe)
+            } finally {
+                fos.flush()
+                fos.close()
+            }
+            logFile
+        }
+
+    private fun format(localDateTime: LocalDateTime) =
+        localDateTime.format(DateTimeFormatter.ISO_DATE_TIME)
 }
 
 data class LogsUiState(

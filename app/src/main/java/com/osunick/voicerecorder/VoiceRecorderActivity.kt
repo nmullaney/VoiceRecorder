@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -26,6 +27,7 @@ import com.osunick.voicerecorder.viewmodel.LogsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.io.File
 
 @AndroidEntryPoint
 class VoiceRecorderActivity : ComponentActivity() {
@@ -126,9 +128,29 @@ class VoiceRecorderActivity : ComponentActivity() {
         }
     }
 
+    private fun logsDir(): File {
+        val logsDir = File(filesDir, "logs/")
+        if (!logsDir.exists()) {
+            logsDir.mkdir()
+        }
+        return logsDir
+    }
 
     private fun share() {
-        toast("TODO")
+        lifecycleScope.launch {
+            val file: File = viewModel.createFile(logsDir())
+            val fileUri = FileProvider.getUriForFile(
+                this@VoiceRecorderActivity,
+                packageName.plus(".fileprovider"),
+                file)
+            val shareIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_STREAM, fileUri)
+                type = "text/plain"
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_file)))
+        }
     }
 
     private fun startRecording() {
