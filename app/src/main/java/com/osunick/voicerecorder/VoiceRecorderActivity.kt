@@ -1,77 +1,108 @@
 package com.osunick.voicerecorder
 
+import android.app.AlertDialog
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.Toast
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
-import com.osunick.voicerecorder.model.VoiceMessage
-import com.osunick.voicerecorder.ui.theme.Typography
+import com.osunick.voicerecorder.extensions.toast
+import com.osunick.voicerecorder.ui.compose.VRScaffold
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.viewmodel.LogEvent
-import com.osunick.voicerecorder.viewmodel.LogsUiState
 import com.osunick.voicerecorder.viewmodel.LogsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @AndroidEntryPoint
 class VoiceRecorderActivity : ComponentActivity() {
 
     private val viewModel: LogsViewModel by viewModels()
 
+    private var speechRecognizer: SpeechRecognizer? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setupSpeechRecognizer()
+        setupEventListener()
+        enableEdgeToEdge()
+        setContent {
+            VoiceRecorderTheme {
+                VRScaffold(viewModel.uiState, viewModel.messageFlow, viewModel.eventsFlow)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        speechRecognizer?.destroy()
+    }
+
+    private fun setupSpeechRecognizer() {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            toast("No speech recognition available")
+        }
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
+        speechRecognizer?.setRecognitionListener(object: RecognitionListener {
+            override fun onReadyForSpeech(results: Bundle?) {
+                Log.d(TAG, "Ready for speech")
+            }
+
+            override fun onBeginningOfSpeech() {
+                Log.d(TAG, "Speech begin")
+            }
+
+            override fun onRmsChanged(rmsdB: Float) {
+                // This is chatty since it logs whenever the volume changes
+                //Log.d(TAG, "Rms changed: $rmsdB")
+            }
+
+            override fun onBufferReceived(buffer: ByteArray?) {
+                Log.d(TAG, "Buffer received")
+            }
+
+            override fun onEndOfSpeech() {
+                Log.d(TAG, "Speech ended")
+            }
+
+            override fun onError(error: Int) {
+                Log.d(TAG, "Error: $error")
+            }
+
+            override fun onResults(results: Bundle?) {
+                Log.d(TAG, "Results: $results")
+                val data: ArrayList<String>? =
+                    results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                Log.d(TAG, "Speech recognition results received: $data, size: ${data?.size}")
+                data?.let {
+                    viewModel.saveVoiceRecording(it.joinToString(" "))
+                }
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {
+                Log.d(TAG, "Results: $partialResults")
+            }
+
+            override fun onEvent(eventType: Int, params: Bundle?) {
+                Log.d(TAG, "On event: $eventType $params")
+            }
+        })
+    }
+
+    private fun setupEventListener() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.eventsFlow.collectLatest {
@@ -85,185 +116,76 @@ class VoiceRecorderActivity : ComponentActivity() {
                         }
 
                         is LogEvent.UpdateLog -> viewModel.updateMessage(it.logText)
+                        LogEvent.StartRecording -> startRecording()
+                    }
+                    if (it != LogEvent.None) {
+                        viewModel.clearEvent()
                     }
                 }
             }
         }
-        enableEdgeToEdge()
-        setContent {
-            VoiceRecorderTheme {
-                VRScaffold(viewModel.uiState, viewModel.messageFlow, viewModel.eventsFlow)
-            }
-        }
     }
+
 
     private fun share() {
-        Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show()
+        toast("TODO")
     }
-}
 
-@Composable
-fun VRScaffold(
-    uiState: StateFlow<LogsUiState>,
-    messageFlow: Flow<PagingData<VoiceMessage>>,
-    eventsFlow: MutableStateFlow<LogEvent>
-) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = { VRTopAppBar(eventsFlow) },
-        bottomBar = { VRAddLogBar(uiState, eventsFlow) }) { innerPadding ->
-        VoiceLogList(
-            messageFlow,
-            Modifier.padding(innerPadding)
-        )
+    private fun startRecording() {
+        if (checkAudioPermission()) {
+            // Start recording
+            viewModel.setIsRecording()
+            val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                )
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, LANGUAGE)
+            }
+            speechRecognizer?.startListening(recognizerIntent)
+        }
     }
-}
 
-@Composable
-fun VoiceLogList(messageFlow: Flow<PagingData<VoiceMessage>>, modifier: Modifier = Modifier) {
-    val lazyPagerItems = messageFlow.collectAsLazyPagingItems()
-    Box(modifier = modifier
-        .fillMaxWidth()
-        .fillMaxHeight()) {
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                startRecording()
+            } else {
+                toast(R.string.cannot_recognize_speech_without_this_permission)
+            }
+        }
 
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(alignment = Alignment.BottomCenter),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.Start,
-            reverseLayout = true
-        ) {
-            items(count = lazyPagerItems.itemCount) { index ->
-                lazyPagerItems[index]?.let { message ->
-
-                    Column(modifier = Modifier.padding(4.dp)) {
-                        Text(
-                            modifier = Modifier,
-                            text = formatDateTime(message.dateTime),
-                            color = Color.Gray,
-                            style = Typography.labelMedium
-                        )
-                        Text(
-                            modifier = Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            text = message.text,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            style = Typography.titleMedium
-                        )
-                    }
-                }
+    private fun checkAudioPermission(): Boolean {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                return true
+            }
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                this,  android.Manifest.permission.RECORD_AUDIO) -> {
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.audio_permission_required)
+                        .setMessage(R.string.need_audio_permission)
+                        .setPositiveButton(android.R.string.ok
+                        ) { dialog, _ -> dialog?.dismiss() }
+                        .setNegativeButton(android.R.string.cancel
+                        ) { dialog, _ -> dialog?.dismiss() }.show()
+                    return false
+            }
+            else -> {
+                requestPermissionLauncher.launch(
+                    android.Manifest.permission.RECORD_AUDIO)
+                return false
             }
         }
     }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun VRTopAppBar(eventsFlow: MutableStateFlow<LogEvent>) {
-    TopAppBar(
-        modifier = Modifier.fillMaxWidth(),
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.onPrimary,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        title = { Text(stringResource(id = R.string.voice_logs)) },
-        actions = {
-            ShareActionBarButton(eventsFlow)
-        })
-}
-
-@Composable
-fun ShareActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
-    val coroutineScope = rememberCoroutineScope()
-    IconButton(onClick = {
-        coroutineScope.launch {
-            eventsFlow.emit(LogEvent.Share)
-        }
-    }) {
-        Icon(Icons.Filled.Share, stringResource(id = R.string.share))
-    }
-}
-
-
-@Composable
-fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent>) {
-    val coroutineScope = rememberCoroutineScope()
-    val messageState = uiState.collectAsState()
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        TextField(
-            messageState.value.currentMessage ?: "",
-            onValueChange = {
-                coroutineScope.launch {
-                    eventsFlow.emit(LogEvent.UpdateLog(it))
-                }
-            },
-            modifier = Modifier.weight(1f)
-        )
-        Button(
-            {
-                coroutineScope.launch {
-                    eventsFlow.emit(LogEvent.Save)
-                }
-            },
-            contentPadding = PaddingValues(0.dp),
-            modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .height(48.dp)
-                .aspectRatio(1f),
-            colors = ButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                disabledContentColor = disabledColor(MaterialTheme.colorScheme.onPrimary),
-                disabledContainerColor = disabledColor(MaterialTheme.colorScheme.primary)
-            ),
-            shape = CircleShape
-        ) {
-            Icon(imageVector = Icons.Filled.Add, stringResource(id = R.string.add_log))
-        }
-    }
-}
-
-fun formatDateTime(localDateTime: LocalDateTime): String =
-    localDateTime.format(DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a"))
-
-fun disabledColor(color: Color): Color =
-    color.copy(alpha = 0.5f)
-
-
-@Preview(widthDp = 320, heightDp = 640)
-@Composable
-fun VRAppPreview() {
-    VoiceRecorderTheme {
-        VRScaffold(
-            uiState = MutableStateFlow(
-                LogsUiState(
-                    "current message"
-                )
-            ),
-            messageFlow = flowOf(
-                PagingData.from(
-                    listOf(
-                        VoiceMessage("Hello", LocalDateTime.now()),
-                        VoiceMessage("There", LocalDateTime.now()),
-                        VoiceMessage(
-                            "Let's try a super long message too, to see what it looks like",
-                            LocalDateTime.now()
-                        )
-                    )
-                )
-            ),
-            eventsFlow = MutableStateFlow(LogEvent.None)
-        )
+    companion object {
+        const val TAG = "VoiceRecorder"
+        const val LANGUAGE = "en-US"
     }
 }

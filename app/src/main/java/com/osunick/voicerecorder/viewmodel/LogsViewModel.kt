@@ -22,7 +22,7 @@ class LogsViewModel @Inject constructor(
     val eventsFlow = MutableStateFlow<LogEvent>(LogEvent.None)
     val messageFlow: Flow<PagingData<VoiceMessage>> = messageRepository.messagePagerFlow()
         .cachedIn(viewModelScope)
-    private val _uiState = MutableStateFlow(LogsUiState(currentMessage = null))
+    private val _uiState = MutableStateFlow(LogsUiState(currentMessage = null, isRecording = false))
     val uiState = _uiState.asStateFlow()
 
 
@@ -42,15 +42,39 @@ class LogsViewModel @Inject constructor(
             it.copy(currentMessage = null)
         }
     }
+
+    fun setIsRecording() {
+        _uiState.update {
+            it.copy(isRecording = true)
+        }
+    }
+
+    fun saveVoiceRecording(text: String) {
+        val voiceMessage = VoiceMessage(text, LocalDateTime.now())
+        viewModelScope.launch {
+            messageRepository.addMessage(voiceMessage)
+        }
+        _uiState.update {
+            it.copy(isRecording = false)
+        }
+    }
+
+    fun clearEvent() {
+        viewModelScope.launch {
+            eventsFlow.emit(LogEvent.None)
+        }
+    }
 }
 
 data class LogsUiState(
-    val currentMessage: String?
+    val currentMessage: String?,
+    val isRecording: Boolean
 )
 
 sealed class LogEvent {
     data object None : LogEvent()
     data object Save: LogEvent()
     data object Share: LogEvent()
+    data object StartRecording: LogEvent()
     data class UpdateLog(val logText: String): LogEvent()
 }
