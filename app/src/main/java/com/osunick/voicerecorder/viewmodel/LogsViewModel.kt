@@ -113,6 +113,8 @@ sealed class LogEvent {
     data object None : LogEvent()
     data object Save: LogEvent()
     data object Share: LogEvent()
+
+    data object DeleteAllLogs: LogEvent()
     data object StartRecording: LogEvent()
     data class UpdateLog(val logText: String): LogEvent()
     data class DeleteLog(val id: Int): LogEvent()
