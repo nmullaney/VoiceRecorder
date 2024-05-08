@@ -8,6 +8,6 @@
     android:previewImage="@drawable/example_appwidget_preview"
     android:previewLayout="@layout/voice_recorder_widget"
     android:targetCellWidth="4"
-    android:targetCellHeight="1"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="86400000"
     android:widgetCategory="home_screen" />

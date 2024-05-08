@@ -2,10 +2,17 @@
     style="@style/Widget.VoiceRecorder.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:theme="@style/Theme.VoiceRecorder.AppWidgetContainer"
     android:background="@drawable/widget_background"
     >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp"
+        >
 
     <Button
         android:id="@+id/record_button"
@@ -26,8 +33,8 @@
     <ImageButton
         android:id="@+id/open_button"
         style="@style/Widget.VoiceRecorder.AppWidget.InnerView"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_marginStart="2dp"
         android:src="@drawable/baseline_open_in_full_24"
         android:scaleType="center"
@@ -37,5 +44,23 @@
         android:textAllCaps="true"
         android:textSize="24sp"
         android:textStyle="bold|italic" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/last_log"
+        style="@style/Widget.VoiceRecorder.AppWidget.InnerView"
+        android:background="@color/blue_teal_on_press"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="@string/tap_to_see_last_log"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:focusable="true"
+        android:clickable="true"
+        android:padding="8dp"
+        android:ellipsize="end"
+        />
 
 </LinearLayout>

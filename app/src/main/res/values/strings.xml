@@ -20,4 +20,6 @@
     <string name="are_you_sure_delete_all">Are you sure you want to delete ALL logs?</string>
     <string name="open">Open</string>
     <string name="recording">Recording</string>
+    <string name="tap_to_see_last_log">Tap to see last log</string>
+    <string name="no_logs_saved">No logs saved</string>
 </resources>

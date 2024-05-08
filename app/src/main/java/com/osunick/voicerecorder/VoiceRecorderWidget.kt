@@ -47,9 +47,16 @@ class VoiceRecorderWidget : AppWidgetProvider() {
             getPendingSelfIntent(context, RECORD_ACTION)
         )
         views.setOnClickPendingIntent(
+            R.id.last_log,
+            getPendingSelfIntent(context, REFRESH_ACTION)
+        )
+        views.setOnClickPendingIntent(
             R.id.open_button,
             openAppPendingIntent(context)
         )
+        runBlocking {
+            updateLogText(context, views)
+        }
         appWidgetManager.updateAppWidget(
             ComponentName(
                 context,
@@ -106,12 +113,36 @@ class VoiceRecorderWidget : AppWidgetProvider() {
                         )
                         Log.d(TAG, "Speech Saved!")
                     }
+                    updateLogTextUI(context)
                 }
 
             })
             speechRecognizer.init()
             speechRecognizer.startListening()
+        } else if (REFRESH_ACTION == intent.action) {
+            updateLogTextUI(context)
         }
+    }
+
+    private fun updateLogTextUI(context: Context) {
+        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        runBlocking {
+            updateLogText(context, views)
+        }
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        appWidgetManager.updateAppWidget(
+            ComponentName(
+                context,
+                VoiceRecorderWidget::class.java
+            ), views
+        )
+    }
+
+    private suspend fun updateLogText(context: Context, views: RemoteViews) {
+        val lastMessage = messageRepository.getLastMessage()
+        views.setTextViewText(R.id.last_log,
+            lastMessage?.text ?: context.getString(R.string.no_logs_saved)
+        )
     }
 
     private fun updateUIForRecordingStop(context: Context) {
@@ -157,6 +188,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
     companion object {
         const val TAG = "Widget"
         const val RECORD_ACTION = "RecordAction"
+        const val REFRESH_ACTION = "RefreshAction"
     }
 }
 

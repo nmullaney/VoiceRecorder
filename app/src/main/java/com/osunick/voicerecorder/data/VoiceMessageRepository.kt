@@ -31,6 +31,9 @@ class VoiceMessageRepository @Inject constructor(private val logDao: LogDao) {
             MessageMapper.mapToVoiceMessage(it)
         }
 
+    suspend fun getLastMessage() =
+        logDao.getMostRecent(0, 1).firstOrNull()
+
     fun refresh() {
         pagingDataSource?.invalidate()
     }
