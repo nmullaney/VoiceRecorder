@@ -1,19 +1,41 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/Widget.VoiceRecorder.AppWidget.Container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:theme="@style/Theme.VoiceRecorder.AppWidgetContainer">
+    android:orientation="horizontal"
+    android:theme="@style/Theme.VoiceRecorder.AppWidgetContainer"
+    android:background="@drawable/widget_background"
+    >
 
     <Button
-        android:id="@+id/appwidget_button"
+        android:id="@+id/record_button"
         style="@style/Widget.VoiceRecorder.AppWidget.InnerView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="8dp"
-        android:contentDescription="@string/appwidget_text"
-        android:text="@string/appwidget_text"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="2dp"
+        android:layout_weight="1"
+        android:background="@color/light_blue_600"
+        android:drawableStart="@drawable/baseline_voice_24"
+        android:drawablePadding="4dp"
+        android:padding="8dp"
+        android:text="@string/record"
+        android:textAllCaps="true"
         android:textSize="24sp"
         android:textStyle="bold|italic" />
-</RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/open_button"
+        style="@style/Widget.VoiceRecorder.AppWidget.InnerView"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginStart="2dp"
+        android:src="@drawable/baseline_open_in_full_24"
+        android:scaleType="center"
+        android:background="@color/blue_teal_on_press"
+        android:contentDescription="@string/open"
+        android:padding="8dp"
+        android:textAllCaps="true"
+        android:textSize="24sp"
+        android:textStyle="bold|italic" />
+
+</LinearLayout>
