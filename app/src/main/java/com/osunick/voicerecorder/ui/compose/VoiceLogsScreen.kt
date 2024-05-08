@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -148,10 +149,21 @@ fun VRTopAppBar(eventsFlow: MutableStateFlow<LogEvent>) {
         ),
         title = { Text(stringResource(id = R.string.voice_logs)) },
         actions = {
+            DeleteActionBarButton(eventsFlow)
             ShareActionBarButton(eventsFlow)
         })
 }
-
+@Composable
+fun DeleteActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
+    val coroutineScope = rememberCoroutineScope()
+    IconButton(onClick = {
+        coroutineScope.launch {
+            eventsFlow.emit(LogEvent.DeleteAllLogs)
+        }
+    }) {
+        Icon(Icons.Filled.Delete, stringResource(id = R.string.deleteall))
+    }
+}
 @Composable
 fun ShareActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
     val coroutineScope = rememberCoroutineScope()

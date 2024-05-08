@@ -18,4 +18,7 @@ interface LogDao {
 
     @Query("DELETE FROM logs WHERE id = :id")
     suspend fun delete(id: Int)
+
+    @Query("DELETE FROM logs")
+    suspend fun deleteAll()
 }

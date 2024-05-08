@@ -86,6 +86,7 @@ class VoiceRecorderActivity : ComponentActivity() {
                             share()
                         }
 
+                        LogEvent.DeleteAllLogs -> deleteAllLogs()
                         is LogEvent.UpdateLog -> viewModel.updateMessage(it.logText)
                         LogEvent.StartRecording -> startRecording()
                         is LogEvent.DeleteLog -> deleteLog(it.id)
@@ -112,7 +113,8 @@ class VoiceRecorderActivity : ComponentActivity() {
             val fileUri = FileProvider.getUriForFile(
                 this@VoiceRecorderActivity,
                 packageName.plus(".fileprovider"),
-                file)
+                file
+            )
             val shareIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
                 putExtra(Intent.EXTRA_STREAM, fileUri)
@@ -122,6 +124,18 @@ class VoiceRecorderActivity : ComponentActivity() {
             startActivity(Intent.createChooser(shareIntent, getString(R.string.share_file)))
         }
     }
+
+    private fun deleteAllLogs() =
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_all_logs)
+            .setMessage(R.string.are_you_sure_delete_all)
+            .setPositiveButton(R.string.delete) { dialog, _ ->
+                viewModel.deleteAllMessages()
+                dialog?.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                dialog?.dismiss()
+            }.show()
 
     private fun deleteLog(id: Int) =
         AlertDialog.Builder(this)
