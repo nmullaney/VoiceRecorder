@@ -2,6 +2,7 @@ package com.osunick.voicerecorder.data
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.log
 import androidx.paging.map
 import com.osunick.voicerecorder.db.LogDao
 import com.osunick.voicerecorder.db.LogEntity
@@ -13,6 +14,11 @@ class VoiceMessageRepository @Inject constructor(private val logDao: LogDao) {
 
     suspend fun addMessage(message: VoiceMessage) {
         logDao.insert(MessageMapper.mapToLogEntity(message))
+        pagingDataSource?.invalidate()
+    }
+
+    suspend fun deleteMessage(id: Int) {
+        logDao.delete(id)
         pagingDataSource?.invalidate()
     }
 
@@ -44,10 +50,10 @@ class VoiceMessageRepository @Inject constructor(private val logDao: LogDao) {
 object MessageMapper {
 
     fun mapToLogEntity(voiceMessage: VoiceMessage): LogEntity {
-        return LogEntity(null, voiceMessage.dateTime, voiceMessage.text)
+        return LogEntity(voiceMessage.id, voiceMessage.dateTime, voiceMessage.text)
     }
 
     fun mapToVoiceMessage(logEntity: LogEntity): VoiceMessage {
-        return VoiceMessage(logEntity.text, logEntity.datetime)
+        return VoiceMessage(logEntity.id, logEntity.text, logEntity.datetime)
     }
 }

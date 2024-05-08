@@ -1,6 +1,7 @@
 package com.osunick.voicerecorder.ui.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,7 @@ import com.osunick.voicerecorder.ui.theme.Typography
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -73,14 +75,19 @@ fun VRScaffold(
     ) { innerPadding ->
         VoiceLogList(
             messageFlow,
+            eventsFlow,
             Modifier.padding(innerPadding)
         )
     }
 }
 
 @Composable
-fun VoiceLogList(messageFlow: Flow<PagingData<VoiceMessage>>, modifier: Modifier = Modifier) {
+fun VoiceLogList(
+    messageFlow: Flow<PagingData<VoiceMessage>>,
+    eventsFlow: MutableStateFlow<LogEvent>,
+    modifier: Modifier = Modifier) {
     val lazyPagerItems = messageFlow.collectAsLazyPagingItems()
+    val coroutineScope = rememberCoroutineScope()
     Box(modifier = modifier
         .fillMaxWidth()
         .fillMaxHeight()) {
@@ -110,7 +117,14 @@ fun VoiceLogList(messageFlow: Flow<PagingData<VoiceMessage>>, modifier: Modifier
                                     color = MaterialTheme.colorScheme.secondaryContainer,
                                     shape = RoundedCornerShape(4.dp)
                                 )
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .clickable {
+                                    coroutineScope.launch {
+                                        message.id?.let {
+                                            eventsFlow.emit(LogEvent.DeleteLog(it))
+                                        }
+                                    }
+                                },
                             text = message.text,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             style = Typography.titleMedium
@@ -240,11 +254,11 @@ fun VRAppPreview() {
             messageFlow = flowOf(
                 PagingData.from(
                     listOf(
-                        VoiceMessage("Hello", LocalDateTime.now()),
-                        VoiceMessage("There", LocalDateTime.now()),
+                        VoiceMessage(text = "Hello", dateTime = LocalDateTime.now()),
+                        VoiceMessage(text = "There", dateTime = LocalDateTime.now()),
                         VoiceMessage(
-                            "Let's try a super long message too, to see what it looks like",
-                            LocalDateTime.now()
+                            text = "Let's try a super long message too, to see what it looks like",
+                            dateTime = LocalDateTime.now()
                         )
                     )
                 )

@@ -1,6 +1,7 @@
 package com.osunick.voicerecorder.db
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 
@@ -14,4 +15,7 @@ interface LogDao {
 
     @Insert
     suspend fun insert(logEntity: LogEntity)
+
+    @Query("DELETE FROM logs WHERE id = :id")
+    suspend fun delete(id: Int)
 }

@@ -119,6 +119,7 @@ class VoiceRecorderActivity : ComponentActivity() {
 
                         is LogEvent.UpdateLog -> viewModel.updateMessage(it.logText)
                         LogEvent.StartRecording -> startRecording()
+                        is LogEvent.DeleteLog -> deleteLog(it.id)
                     }
                     if (it != LogEvent.None) {
                         viewModel.clearEvent()
@@ -152,6 +153,19 @@ class VoiceRecorderActivity : ComponentActivity() {
             startActivity(Intent.createChooser(shareIntent, getString(R.string.share_file)))
         }
     }
+
+    private fun deleteLog(id: Int) =
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_log)
+            .setMessage(R.string.are_you_sure_delete)
+            .setPositiveButton(R.string.delete) { dialog, _ ->
+                viewModel.deleteMessage(id)
+                dialog?.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                dialog?.dismiss()
+            }.show()
+
 
     private fun startRecording() {
         if (checkAudioPermission()) {

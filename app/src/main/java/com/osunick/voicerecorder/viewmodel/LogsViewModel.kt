@@ -41,8 +41,17 @@ class LogsViewModel @Inject constructor(
         }
     }
 
+    fun deleteMessage(id: Int) {
+        viewModelScope.launch {
+            messageRepository.deleteMessage(id)
+        }
+    }
+
     fun saveMessage() {
-        val voiceMessage = VoiceMessage(uiState.value.currentMessage ?: "", LocalDateTime.now())
+        val voiceMessage = VoiceMessage(
+            null,
+            uiState.value.currentMessage ?: "",
+            LocalDateTime.now())
         viewModelScope.launch {
             messageRepository.addMessage(voiceMessage)
         }
@@ -58,7 +67,7 @@ class LogsViewModel @Inject constructor(
     }
 
     fun saveVoiceRecording(text: String) {
-        val voiceMessage = VoiceMessage(text, LocalDateTime.now())
+        val voiceMessage = VoiceMessage(null, text, LocalDateTime.now())
         viewModelScope.launch {
             messageRepository.addMessage(voiceMessage)
         }
@@ -106,4 +115,5 @@ sealed class LogEvent {
     data object Share: LogEvent()
     data object StartRecording: LogEvent()
     data class UpdateLog(val logText: String): LogEvent()
+    data class DeleteLog(val id: Int): LogEvent()
 }
