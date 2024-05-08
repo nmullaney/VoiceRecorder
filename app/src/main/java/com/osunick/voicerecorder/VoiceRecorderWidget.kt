@@ -27,7 +27,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
     override fun onDisabled(context: Context) {
         // Enter relevant functionality for when the last widget is disabled
     }
-    override fun on
+
 }
 
 internal fun updateAppWidget(
