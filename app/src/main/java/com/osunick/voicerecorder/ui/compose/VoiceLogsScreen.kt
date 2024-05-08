@@ -25,7 +25,6 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,19 +46,19 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.osunick.voicerecorder.R
+import com.osunick.voicerecorder.date.DateTimeConstants
 import com.osunick.voicerecorder.model.VoiceMessage
 import com.osunick.voicerecorder.ui.theme.Typography
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 
 @Composable
@@ -245,8 +244,11 @@ fun VRFab(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent
     }
 }
 
-fun formatDateTime(localDateTime: LocalDateTime): String =
-    localDateTime.format(DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a"))
+fun formatDateTime(zonedDateTime: ZonedDateTime): String =
+    zonedDateTime
+        .withZoneSameInstant(ZoneId.systemDefault())
+        .toLocalDateTime()
+        .format(DateTimeConstants.PrettyDateFormatter)
 
 fun disabledColor(color: Color): Color =
     color.copy(alpha = 0.5f)
@@ -266,11 +268,11 @@ fun VRAppPreview() {
             messageFlow = flowOf(
                 PagingData.from(
                     listOf(
-                        VoiceMessage(text = "Hello", dateTime = LocalDateTime.now()),
-                        VoiceMessage(text = "There", dateTime = LocalDateTime.now()),
+                        VoiceMessage(text = "Hello", dateTime = ZonedDateTime.now()),
+                        VoiceMessage(text = "There", dateTime = ZonedDateTime.now()),
                         VoiceMessage(
                             text = "Let's try a super long message too, to see what it looks like",
-                            dateTime = LocalDateTime.now()
+                            dateTime = ZonedDateTime.now()
                         )
                     )
                 )

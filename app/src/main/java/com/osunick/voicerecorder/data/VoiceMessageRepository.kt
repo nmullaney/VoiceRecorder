@@ -2,7 +2,6 @@ package com.osunick.voicerecorder.data
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.log
 import androidx.paging.map
 import com.osunick.voicerecorder.db.LogDao
 import com.osunick.voicerecorder.db.LogEntity

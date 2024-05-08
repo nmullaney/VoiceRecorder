@@ -1,17 +1,18 @@
 package com.osunick.voicerecorder.db
 
 import androidx.room.TypeConverter
-import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class DateTimeTypeConverter {
 
     @TypeConverter
-    fun fromDateTime(value: String?): LocalDateTime? {
-        return value?.let { LocalDateTime.parse(value) }
+    fun fromDateTime(value: String?): ZonedDateTime? {
+        return value?.let { ZonedDateTime.parse(value).withZoneSameInstant(ZoneId.of("UTC")) }
     }
 
     @TypeConverter
-    fun toDateTime(date: LocalDateTime?): String? {
-        return date?.toString()
+    fun toDateTime(date: ZonedDateTime?): String? {
+        return date?.withZoneSameInstant(ZoneId.of("UTC")).toString()
     }
 }

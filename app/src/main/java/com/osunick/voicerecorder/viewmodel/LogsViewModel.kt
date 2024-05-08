@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.osunick.voicerecorder.data.VoiceMessageRepository
+import com.osunick.voicerecorder.date.DateTimeConstants.PrettyDateFormatter
+import com.osunick.voicerecorder.date.DateTimeConstants.UTCZoneId
 import com.osunick.voicerecorder.model.VoiceMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,8 +20,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 
@@ -55,7 +57,7 @@ class LogsViewModel @Inject constructor(
         val voiceMessage = VoiceMessage(
             null,
             uiState.value.currentMessage ?: "",
-            LocalDateTime.now())
+            ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
         viewModelScope.launch {
             messageRepository.addMessage(voiceMessage)
         }
@@ -77,7 +79,10 @@ class LogsViewModel @Inject constructor(
     }
 
     fun saveVoiceRecording(text: String) {
-        val voiceMessage = VoiceMessage(null, text, LocalDateTime.now())
+        val voiceMessage = VoiceMessage(
+            null,
+            text,
+            ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
         viewModelScope.launch {
             messageRepository.addMessage(voiceMessage)
         }
@@ -97,8 +102,10 @@ class LogsViewModel @Inject constructor(
             val logFile = File.createTempFile("logs", ".txt", logsDir)
             val fos = FileOutputStream(logFile, false)
             try {
+                val header = "UTC Date\tLocal Date\tLog\n"
+                fos.write(header.toByteArray())
                 messageRepository.getAllMessages().forEach {
-                    val line = "${format(it.dateTime)}\t ${it.text}\n"
+                    val line = "${formatUTC(it.dateTime)}\t${formatLocal(it.dateTime)}\t${it.text}\n"
                     fos.write(line.toByteArray())
                 }
             } catch (ioe: IOException) {
@@ -110,8 +117,14 @@ class LogsViewModel @Inject constructor(
             logFile
         }
 
-    private fun format(localDateTime: LocalDateTime) =
-        localDateTime.format(DateTimeFormatter.ISO_DATE_TIME)
+    private fun formatUTC(zonedDateTime: ZonedDateTime) =
+        zonedDateTime.toString()
+
+    private fun formatLocal(zonedDateTime: ZonedDateTime) =
+        zonedDateTime
+            .withZoneSameInstant(ZoneId.systemDefault())
+            .toLocalDateTime()
+            .format(PrettyDateFormatter)
 }
 
 data class LogsUiState(

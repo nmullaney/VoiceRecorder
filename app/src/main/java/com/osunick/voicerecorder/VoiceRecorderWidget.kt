@@ -14,7 +14,7 @@ import com.osunick.voicerecorder.speech.OnSpeechEventListener
 import com.osunick.voicerecorder.speech.VRSpeechRecognizer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.runBlocking
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 
@@ -88,7 +88,7 @@ class VoiceRecorderWidget() : AppWidgetProvider() {
                         messageRepository.addMessage(
                             VoiceMessage(
                                 text = speech,
-                                dateTime = LocalDateTime.now()
+                                dateTime = ZonedDateTime.now()
                             )
                         )
                         Log.d(TAG, "Speech Saved!")
