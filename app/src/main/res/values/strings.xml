@@ -8,4 +8,7 @@
     <string name="audio_permission_required">Audio Permission Required</string>
     <string name="need_audio_permission">Audio permission is required to create notes from your voice</string>
     <string name="share_file">Share log file</string>
+    <string name="appwidget_text">RECORD</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
 </resources>
