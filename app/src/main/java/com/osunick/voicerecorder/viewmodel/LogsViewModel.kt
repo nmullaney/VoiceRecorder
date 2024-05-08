@@ -79,7 +79,7 @@ class LogsViewModel @Inject constructor(
             val fos = FileOutputStream(logFile, false)
             try {
                 messageRepository.getAllMessages().forEach {
-                    val line = "${format(it.dateTime)}, ${it.text}\n"
+                    val line = "${format(it.dateTime)}\t ${it.text}\n"
                     fos.write(line.toByteArray())
                 }
             } catch (ioe: IOException) {
