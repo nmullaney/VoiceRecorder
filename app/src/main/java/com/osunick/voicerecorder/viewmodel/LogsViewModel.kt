@@ -33,8 +33,6 @@ class LogsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LogsUiState(currentMessage = null, isRecording = false))
     val uiState = _uiState.asStateFlow()
 
-
-
     fun updateMessage(newMessage: String?) {
         _uiState.update {
             it.copy(currentMessage = newMessage)
@@ -57,6 +55,12 @@ class LogsViewModel @Inject constructor(
         }
         _uiState.update {
             it.copy(currentMessage = null)
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            messageRepository.refresh()
         }
     }
 

@@ -50,6 +50,11 @@ class VoiceRecorderActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.refresh()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         speechRecognizer.destroy()
