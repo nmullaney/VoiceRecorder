@@ -138,19 +138,6 @@ class VoiceRecorderActivity : ComponentActivity() {
         return logsDir
     }
 
-    private fun deleteAllLogs() {
-        val logsDir = File(filesDir, "logs/")
-        val result = logsDir.deleteRecursively()
-        if (result) {
-            Log.d("LogPagingDataSource", "Deleted all logs")
-        } else {
-            Log.d("LogPagingDataSource", "Deleted all logs failed")
-        }
-
-        logsDir.mkdir()
-
-    }
-
     private fun share() {
         lifecycleScope.launch {
             val file: File = viewModel.createFile(logsDir())
@@ -168,6 +155,18 @@ class VoiceRecorderActivity : ComponentActivity() {
             startActivity(Intent.createChooser(shareIntent, getString(R.string.share_file)))
         }
     }
+
+    private fun deleteAllLogs() =
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_all_logs)
+            .setMessage(R.string.are_you_sure_delete_all)
+            .setPositiveButton(R.string.delete) { dialog, _ ->
+                viewModel.deleteAllMessages()
+                dialog?.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                dialog?.dismiss()
+            }.show()
 
     private fun deleteLog(id: Int) =
         AlertDialog.Builder(this)

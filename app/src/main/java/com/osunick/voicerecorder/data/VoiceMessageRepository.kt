@@ -22,6 +22,11 @@ class VoiceMessageRepository @Inject constructor(private val logDao: LogDao) {
         pagingDataSource?.invalidate()
     }
 
+    suspend fun deleteAllMessage() {
+        logDao.deleteAll()
+        pagingDataSource?.invalidate()
+    }
+
     suspend fun getAllMessages() =
         logDao.getAll().map {
             MessageMapper.mapToVoiceMessage(it)

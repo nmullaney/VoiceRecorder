@@ -47,6 +47,12 @@ class LogsViewModel @Inject constructor(
         }
     }
 
+    fun deleteAllMessages() {
+        viewModelScope.launch {
+            messageRepository.deleteAllMessage()
+        }
+    }
+
     fun saveMessage() {
         val voiceMessage = VoiceMessage(
             null,
