@@ -20,6 +20,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.osunick.voicerecorder.extensions.toast
+import com.osunick.voicerecorder.speech.OnSpeechEventListener
+import com.osunick.voicerecorder.speech.VRSpeechRecognizer
 import com.osunick.voicerecorder.ui.compose.VRScaffold
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.viewmodel.LogEvent
@@ -34,7 +36,7 @@ class VoiceRecorderActivity : ComponentActivity() {
 
     private val viewModel: LogsViewModel by viewModels()
 
-    private var speechRecognizer: SpeechRecognizer? = null
+    private lateinit var speechRecognizer: VRSpeechRecognizer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,60 +50,27 @@ class VoiceRecorderActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.refresh()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        speechRecognizer?.destroy()
+        speechRecognizer.destroy()
     }
 
     private fun setupSpeechRecognizer() {
-        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            toast("No speech recognition available")
-        }
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
-        speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(results: Bundle?) {
-                Log.d(TAG, "Ready for speech")
+        speechRecognizer = VRSpeechRecognizer(this, object: OnSpeechEventListener {
+            override fun onRecognitionNotAvailable() {
+                toast("No speech recognition available")
             }
 
-            override fun onBeginningOfSpeech() {
-                Log.d(TAG, "Speech begin")
-            }
-
-            override fun onRmsChanged(rmsdB: Float) {
-                // This is chatty since it logs whenever the volume changes
-                //Log.d(TAG, "Rms changed: $rmsdB")
-            }
-
-            override fun onBufferReceived(buffer: ByteArray?) {
-                Log.d(TAG, "Buffer received")
-            }
-
-            override fun onEndOfSpeech() {
-                Log.d(TAG, "Speech ended")
-            }
-
-            override fun onError(error: Int) {
-                Log.d(TAG, "Error: $error")
-            }
-
-            override fun onResults(results: Bundle?) {
-                Log.d(TAG, "Results: $results")
-                val data: ArrayList<String>? =
-                    results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                Log.d(TAG, "Speech recognition results received: $data, size: ${data?.size}")
-                data?.let {
-                    viewModel.saveVoiceRecording(it.joinToString(" "))
-                }
-            }
-
-            override fun onPartialResults(partialResults: Bundle?) {
-                Log.d(TAG, "Results: $partialResults")
-            }
-
-            override fun onEvent(eventType: Int, params: Bundle?) {
-                Log.d(TAG, "On event: $eventType $params")
+            override fun onSpeechRecognized(speech: String) {
+                viewModel.saveVoiceRecording(speech)
             }
         })
+        speechRecognizer.init()
     }
 
     private fun setupEventListener() {
@@ -185,14 +154,7 @@ class VoiceRecorderActivity : ComponentActivity() {
         if (checkAudioPermission()) {
             // Start recording
             viewModel.setIsRecording()
-            val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(
-                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-                )
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, LANGUAGE)
-            }
-            speechRecognizer?.startListening(recognizerIntent)
+            speechRecognizer.startListening()
         }
     }
 
@@ -238,10 +200,5 @@ class VoiceRecorderActivity : ComponentActivity() {
                 return false
             }
         }
-    }
-
-    companion object {
-        const val TAG = "VoiceRecorder"
-        const val LANGUAGE = "en-US"
     }
 }
