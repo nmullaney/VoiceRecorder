@@ -8,4 +8,7 @@
     <string name="audio_permission_required">Audio Permission Required</string>
     <string name="need_audio_permission">Audio permission is required to create notes from your voice</string>
     <string name="share_file">Share log file</string>
+    <string name="delete_log">Delete Log?</string>
+    <string name="are_you_sure_delete">Are you sure you want to delete this log?</string>
+    <string name="delete">Delete</string>
 </resources>
