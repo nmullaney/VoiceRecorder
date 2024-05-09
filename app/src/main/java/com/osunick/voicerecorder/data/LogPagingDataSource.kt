@@ -7,6 +7,7 @@ import com.osunick.voicerecorder.db.LogDao
 import com.osunick.voicerecorder.db.LogEntity
 
 class LogPagingDataSource(
+    private val labelQuery: String?,
     private val logDao: LogDao
 ): PagingSource<Int, LogEntity>() {
 
@@ -18,7 +19,7 @@ class LogPagingDataSource(
         val offset = params.key ?: 0
         Log.d("LogPagingDataSource","Loading with offset: $offset, limit: $limit")
         return try {
-            val logEntities = logDao.getMostRecent(offset, limit)
+            val logEntities = logDao.getMostRecentWithLabel(labelQuery, offset, limit)
             val nextKey = if (logEntities.size < limit) null else offset + logEntities.size
             Log.d("LogPagingDataSource","Result with nextKey: $nextKey")
             LoadResult.Page(

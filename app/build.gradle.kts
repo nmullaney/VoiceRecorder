@@ -55,6 +55,7 @@ android {
 dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.datastore.preferences)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.paging.common.ktx)
     implementation(libs.androidx.paging.common.android)

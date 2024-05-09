@@ -8,4 +8,5 @@ import java.time.ZonedDateTime
 data class LogEntity(
     @PrimaryKey val id: Int?,
     val datetime: ZonedDateTime,
-    val text: String)
+    val text: String,
+    val label: String?)
