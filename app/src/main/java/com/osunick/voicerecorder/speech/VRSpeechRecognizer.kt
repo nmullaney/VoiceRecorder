@@ -40,10 +40,12 @@ class VRSpeechRecognizer(
 
             override fun onEndOfSpeech() {
                 Log.d(TAG, "Speech ended")
+                onSpeechEventListener.onSpeechEnded()
             }
 
             override fun onError(error: Int) {
                 Log.d(TAG, "Error: $error")
+                onSpeechEventListener.onSpeechError(error)
             }
 
             override fun onResults(results: Bundle?) {
@@ -90,4 +92,6 @@ class VRSpeechRecognizer(
 interface OnSpeechEventListener {
     fun onRecognitionNotAvailable()
     fun onSpeechRecognized(speech: String)
+    fun onSpeechError(error: Int)
+    fun onSpeechEnded()
 }

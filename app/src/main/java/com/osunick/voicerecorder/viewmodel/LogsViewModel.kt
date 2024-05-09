@@ -78,6 +78,12 @@ class LogsViewModel @Inject constructor(
         }
     }
 
+    fun endVoiceRecording() {
+        _uiState.update {
+            it.copy(isRecording = false)
+        }
+    }
+
     fun saveVoiceRecording(text: String) {
         val voiceMessage = VoiceMessage(
             null,
