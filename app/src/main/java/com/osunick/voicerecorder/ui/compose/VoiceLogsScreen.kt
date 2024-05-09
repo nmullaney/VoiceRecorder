@@ -2,6 +2,7 @@ package com.osunick.voicerecorder.ui.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -34,12 +37,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.NativeKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
@@ -179,42 +189,33 @@ fun ShareActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
 fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent>) {
     val coroutineScope = rememberCoroutineScope()
     val messageState = uiState.collectAsState()
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        TextField(
-            messageState.value.currentMessage ?: "",
-            onValueChange = {
-                coroutineScope.launch {
-                    eventsFlow.emit(LogEvent.UpdateLog(it))
+    val requester = remember { FocusRequester() }
+    TextField(
+        messageState.value.currentMessage ?: "",
+        onValueChange = {
+            coroutineScope.launch {
+                eventsFlow.emit(LogEvent.UpdateLog(it))
+            }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = {
+            coroutineScope.launch {
+                eventsFlow.emit(LogEvent.Save)
+            }
+        }),
+        modifier = Modifier.fillMaxWidth()
+            .onKeyEvent { keyEvent ->
+                if (keyEvent.nativeKeyEvent.keyCode.equals(NativeKeyEvent.KEYCODE_ENTER)) {
+                    coroutineScope.launch {
+                        eventsFlow.emit(LogEvent.Save)
+                    }
+                    return@onKeyEvent true
                 }
-            },
-            modifier = Modifier.weight(1f)
-        )
-        Button(
-            {
-                coroutineScope.launch {
-                    eventsFlow.emit(LogEvent.Save)
-                }
-            },
-            contentPadding = PaddingValues(0.dp),
-            modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .height(48.dp)
-                .aspectRatio(1f),
-            colors = ButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                disabledContentColor = disabledColor(MaterialTheme.colorScheme.onPrimary),
-                disabledContainerColor = disabledColor(MaterialTheme.colorScheme.primary)
-            ),
-            shape = CircleShape
-        ) {
-            Icon(imageVector = Icons.Filled.Add, stringResource(id = R.string.add_log))
-        }
-    }
+                return@onKeyEvent false
+            }
+            .focusRequester(requester)
+            .focusable()
+    )
 }
 
 @Composable
