@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -233,7 +232,11 @@ fun VRFab(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent
 
     ) {
         if (state.value.isRecording) {
-            CircularProgressIndicator()
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_talking_24),
+                contentDescription = stringResource(id = R.string.recording),
+                tint = MaterialTheme.colorScheme.primary
+            )
         } else {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_voice_24),
