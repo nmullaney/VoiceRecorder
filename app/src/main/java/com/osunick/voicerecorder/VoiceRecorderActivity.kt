@@ -4,10 +4,6 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -45,7 +41,11 @@ class VoiceRecorderActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             VoiceRecorderTheme {
-                VRScaffold(viewModel.uiState, viewModel.messageFlow, viewModel.eventsFlow)
+                VRScaffold(
+                    viewModel.uiState,
+                    viewModel.messageFlow,
+                    viewModel.labelsFlow,
+                    viewModel.eventsFlow)
             }
         }
     }
@@ -88,16 +88,17 @@ class VoiceRecorderActivity : ComponentActivity() {
                     when (it) {
                         LogEvent.None -> { /* No-op */
                         }
-
                         LogEvent.Save -> viewModel.saveMessage()
                         LogEvent.Share -> {
                             share()
                         }
-
                         LogEvent.DeleteAllLogs -> deleteAllLogs()
                         is LogEvent.UpdateLog -> viewModel.updateMessage(it.logText)
                         LogEvent.StartRecording -> startRecording()
                         is LogEvent.DeleteLog -> deleteLog(it.id)
+                        is LogEvent.CreateLabel -> viewModel.addLabel(it.newLabel)
+                        is LogEvent.RenameLabel -> viewModel.renameLabel(it.oldLabel, it.newLabel)
+                        is LogEvent.SelectLabel -> viewModel.setSelectedLabel(it.selectedLabel)
                     }
                     if (it != LogEvent.None) {
                         viewModel.clearEvent()

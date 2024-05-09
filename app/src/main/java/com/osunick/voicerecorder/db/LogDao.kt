@@ -20,6 +20,9 @@ interface LogDao {
     @Query("UPDATE logs SET label = :newLabel where label = :oldLabel")
     suspend fun updateLabel(oldLabel: String?, newLabel: String?)
 
+    @Query("SELECT DISTINCT label from logs")
+    suspend fun getLabels(): List<String>
+
     @Insert
     suspend fun insert(logEntity: LogEntity)
 

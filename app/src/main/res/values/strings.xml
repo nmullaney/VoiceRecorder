@@ -24,4 +24,7 @@
     <string name="no_logs_saved">No logs saved</string>
     <string name="recording_failed">Recording failed</string>
     <string name="no_speech_detected">No speech detected</string>
+    <string name="label">Label</string>
+    <string name="add_label">Add label</string>
+    <string name="rename_label">Rename label</string>
 </resources>

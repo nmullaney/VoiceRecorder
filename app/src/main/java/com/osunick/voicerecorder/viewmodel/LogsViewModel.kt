@@ -8,12 +8,17 @@ import androidx.paging.cachedIn
 import com.osunick.voicerecorder.data.VoiceMessageRepository
 import com.osunick.voicerecorder.date.DateTimeConstants.PrettyDateFormatter
 import com.osunick.voicerecorder.date.DateTimeConstants.UTCZoneId
+import com.osunick.voicerecorder.model.LogLabels
 import com.osunick.voicerecorder.model.VoiceMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,6 +35,10 @@ class LogsViewModel @Inject constructor(
     private val messageRepository: VoiceMessageRepository
 ): ViewModel() {
     val eventsFlow = MutableStateFlow<LogEvent>(LogEvent.None)
+    val labelsFlow = messageRepository
+        .labelFlow()
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, LogLabels("", listOf("")))
     val messageFlow: Flow<PagingData<VoiceMessage>> = messageRepository.messagePagerFlow()
         .cachedIn(viewModelScope)
     private val _uiState = MutableStateFlow(LogsUiState(currentMessage = null, isRecording = false))
@@ -100,6 +109,21 @@ class LogsViewModel @Inject constructor(
         }
     }
 
+    fun addLabel(newLabel: String) =
+        viewModelScope.launch {
+            messageRepository.setSelectedLabel(newLabel)
+        }
+
+    fun renameLabel(oldName: String, newName: String) =
+        viewModelScope.launch {
+            messageRepository.editSelectedLabel(oldName, newName)
+        }
+
+    fun setSelectedLabel(selectedLabel: String) =
+        viewModelScope.launch {
+            messageRepository.setSelectedLabel(selectedLabel)
+        }
+
     fun clearEvent() {
         viewModelScope.launch {
             eventsFlow.emit(LogEvent.None)
@@ -145,9 +169,11 @@ sealed class LogEvent {
     data object None : LogEvent()
     data object Save: LogEvent()
     data object Share: LogEvent()
-
     data object DeleteAllLogs: LogEvent()
     data object StartRecording: LogEvent()
     data class UpdateLog(val logText: String): LogEvent()
     data class DeleteLog(val id: Int): LogEvent()
+    data class CreateLabel(val newLabel: String): LogEvent()
+    data class RenameLabel(val oldLabel: String, val newLabel: String): LogEvent()
+    data class SelectLabel(val selectedLabel: String): LogEvent()
 }
