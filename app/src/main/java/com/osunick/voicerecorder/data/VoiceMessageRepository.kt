@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.log
 import androidx.paging.map
 import com.osunick.voicerecorder.db.LogDao
 import com.osunick.voicerecorder.db.LogEntity
@@ -115,10 +116,14 @@ class VoiceMessageRepository @Inject constructor(
 object MessageMapper {
 
     fun mapToLogEntity(voiceMessage: VoiceMessage, label: String): LogEntity {
-        return LogEntity(voiceMessage.id, voiceMessage.dateTime, voiceMessage.text, label)
+        return LogEntity(
+            voiceMessage.id,
+            voiceMessage.dateTime,
+            voiceMessage.text,
+            voiceMessage.label ?: label)
     }
 
     fun mapToVoiceMessage(logEntity: LogEntity): VoiceMessage {
-        return VoiceMessage(logEntity.id, logEntity.text, logEntity.datetime)
+        return VoiceMessage(logEntity.id, logEntity.text, logEntity.label, logEntity.datetime)
     }
 }

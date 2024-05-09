@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -66,9 +65,8 @@ class LogsViewModel @Inject constructor(
         val message = uiState.value.currentMessage?.trim()
         if (!message.isNullOrBlank()) {
             val voiceMessage = VoiceMessage(
-                null,
-                message,
-                ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
+                text = message,
+                dateTime = ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
             viewModelScope.launch {
                 messageRepository.addMessage(voiceMessage)
             }
@@ -98,9 +96,8 @@ class LogsViewModel @Inject constructor(
 
     fun saveVoiceRecording(text: String) {
         val voiceMessage = VoiceMessage(
-            null,
-            text,
-            ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
+            text = text,
+            dateTime = ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
         viewModelScope.launch {
             messageRepository.addMessage(voiceMessage)
         }
@@ -135,10 +132,10 @@ class LogsViewModel @Inject constructor(
             val logFile = File.createTempFile("logs", ".txt", logsDir)
             val fos = FileOutputStream(logFile, false)
             try {
-                val header = "UTC Date\tLocal Date\tLog\n"
+                val header = "UTC Date\tLocal Date\tLabel\tLog\n"
                 fos.write(header.toByteArray())
                 messageRepository.getAllMessages().forEach {
-                    val line = "${formatUTC(it.dateTime)}\t${formatLocal(it.dateTime)}\t${it.text}\n"
+                    val line = "${formatUTC(it.dateTime)}\t${formatLocal(it.dateTime)}\t${it.label}\t${it.text}\n"
                     fos.write(line.toByteArray())
                 }
             } catch (ioe: IOException) {
