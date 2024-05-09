@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.widget.RemoteViews
 import com.osunick.voicerecorder.data.VoiceMessageRepository
@@ -116,7 +117,11 @@ class VoiceRecorderWidget : AppWidgetProvider() {
 
                 override fun onSpeechError(error: Int) {
                     updateUIForRecordingStop(context)
-                    val errorMessage: String = context.getString(R.string.recording_failed)
+                    val errorMessage = context.getString(
+                        when (error) {
+                            SpeechRecognizer.ERROR_NO_MATCH -> R.string.no_speech_detected
+                            else -> R.string.recording_failed
+                    })
                     updateLogTextUIWithText(context, errorMessage)
                 }
 
