@@ -183,7 +183,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
         views.setInt(
             R.id.record_button,
             "setBackgroundColor",
-            context.getColor(R.color.light_blue_600))
+            context.getColor(R.color.md_theme_primaryContainer))
         val appWidgetManager = AppWidgetManager.getInstance(context)
         appWidgetManager.updateAppWidget(
             ComponentName(
@@ -199,7 +199,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
         views.setInt(
             R.id.record_button,
             "setBackgroundColor",
-            context.getColor(R.color.teal_200))
+            context.getColor(R.color.md_theme_secondaryContainer))
         val appWidgetManager = AppWidgetManager.getInstance(context)
         appWidgetManager.updateAppWidget(
             ComponentName(

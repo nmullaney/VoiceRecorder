@@ -51,6 +51,9 @@ import com.osunick.voicerecorder.date.DateTimeConstants
 import com.osunick.voicerecorder.model.VoiceMessage
 import com.osunick.voicerecorder.ui.theme.Typography
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
+import com.osunick.voicerecorder.ui.theme.onPrimaryContainerLight
+import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
+import com.osunick.voicerecorder.ui.theme.primaryContainerLight
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
 import kotlinx.coroutines.flow.Flow
@@ -97,7 +100,8 @@ fun VoiceLogList(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(alignment = Alignment.BottomCenter),
+                .align(alignment = Alignment.BottomCenter)
+                .padding(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.Start,
             reverseLayout = true
@@ -109,13 +113,13 @@ fun VoiceLogList(
                         Text(
                             modifier = Modifier,
                             text = formatDateTime(message.dateTime),
-                            color = Color.Gray,
+                            color = onSurfaceVariantLight,
                             style = Typography.labelMedium
                         )
                         Text(
                             modifier = Modifier
                                 .background(
-                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    color = primaryContainerLight,
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -127,7 +131,7 @@ fun VoiceLogList(
                                     }
                                 },
                             text = message.text,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = onPrimaryContainerLight,
                             style = Typography.titleMedium
                         )
                     }
@@ -195,10 +199,6 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
                 eventsFlow.emit(LogEvent.Save)
             }
         }),
-        colors = TextFieldDefaults.colors().copy(
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface
-        ),
         modifier = Modifier
             .fillMaxWidth()
             .onKeyEvent { keyEvent ->
