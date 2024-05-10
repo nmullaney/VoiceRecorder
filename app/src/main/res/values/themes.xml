@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.VoiceRecorder" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.VoiceRecorder" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/md_theme_primary</item>
+        <item name="android:colorSecondary">@color/md_theme_secondary</item>
+        <item name="android:colorError">@color/md_theme_error</item>
+        <item name="android:colorBackground">@color/md_theme_background</item>
+    </style>
 
     <style name="Theme.VoiceRecorder.AppWidgetContainerParent" parent="@android:style/Theme.DeviceDefault">
         <!-- Radius of the outer bound of widgets to make the rounded corners -->

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VoiceRecorder</string>
+    <string name="app_name">Voice Logs</string>
     <string name="voice_logs">Voice Logs</string>
     <string name="share">share</string>
     <string name="deleteall">delete all</string>

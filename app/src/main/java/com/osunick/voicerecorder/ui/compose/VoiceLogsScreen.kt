@@ -43,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.NativeKeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
@@ -60,6 +59,10 @@ import com.osunick.voicerecorder.model.LogLabels
 import com.osunick.voicerecorder.model.VoiceMessage
 import com.osunick.voicerecorder.ui.theme.Typography
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
+import com.osunick.voicerecorder.ui.theme.onPrimaryContainerLight
+import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
+import com.osunick.voicerecorder.ui.theme.primaryContainerLight
+import com.osunick.voicerecorder.ui.theme.secondaryContainerLight
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
 import kotlinx.coroutines.flow.Flow
@@ -122,7 +125,7 @@ fun LogLabelSelector(
     Box(
         modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.secondaryContainer),
+            .background(MaterialTheme.colorScheme.surfaceContainer),
         contentAlignment = Alignment.Center
     ) {
         ExposedDropdownMenuBox(
@@ -137,10 +140,7 @@ fun LogLabelSelector(
                 onValueChange = {
                     typingValue = it
                 },
-                label = { Text(stringResource(id = R.string.label)) },
-                colors = OutlinedTextFieldDefaults.colors().copy(
-                    focusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                label = { Text(stringResource(id = R.string.label)) }
             )
 
             ExposedDropdownMenu(
@@ -200,7 +200,8 @@ fun VoiceLogList(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(alignment = Alignment.BottomCenter),
+                .align(alignment = Alignment.BottomCenter)
+                .padding(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.Start,
             reverseLayout = true
@@ -212,13 +213,13 @@ fun VoiceLogList(
                         Text(
                             modifier = Modifier,
                             text = formatDateTime(message.dateTime),
-                            color = Color.Gray,
+                            color = onSurfaceVariantLight,
                             style = Typography.labelMedium
                         )
                         Text(
                             modifier = Modifier
                                 .background(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    color = primaryContainerLight,
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -230,7 +231,7 @@ fun VoiceLogList(
                                     }
                                 },
                             text = message.text,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            color = onPrimaryContainerLight,
                             style = Typography.titleMedium
                         )
                     }
@@ -328,19 +329,19 @@ fun VRFab(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent
                 }
             }
         },
-
-        ) {
+        containerColor = MaterialTheme.colorScheme.secondary
+    ) {
         if (state.value.isRecording) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_talking_24),
                 contentDescription = stringResource(id = R.string.recording),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondary
             )
         } else {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_voice_24),
                 contentDescription = stringResource(id = R.string.add_voice_log),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondary
             )
         }
     }
