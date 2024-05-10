@@ -27,4 +27,5 @@
     <string name="label">Label</string>
     <string name="add_label">Add label</string>
     <string name="rename_label">Rename label</string>
+    <string name="open_and_allow_audio">Please open the app, touch the record button, and enable audio permissions.</string>
 </resources>

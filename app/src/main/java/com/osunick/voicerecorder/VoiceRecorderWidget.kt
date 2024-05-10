@@ -120,6 +120,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
                     val errorMessage = context.getString(
                         when (error) {
                             SpeechRecognizer.ERROR_NO_MATCH -> R.string.no_speech_detected
+                            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> R.string.open_and_allow_audio
                             else -> R.string.recording_failed
                     })
                     updateLogTextUIWithText(context, errorMessage)
