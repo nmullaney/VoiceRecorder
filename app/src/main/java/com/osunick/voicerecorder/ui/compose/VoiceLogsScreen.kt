@@ -6,25 +6,17 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -33,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -44,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.NativeKeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.res.painterResource
@@ -123,7 +115,7 @@ fun VoiceLogList(
                         Text(
                             modifier = Modifier
                                 .background(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -135,7 +127,7 @@ fun VoiceLogList(
                                     }
                                 },
                             text = message.text,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             style = Typography.titleMedium
                         )
                     }
@@ -203,7 +195,12 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
                 eventsFlow.emit(LogEvent.Save)
             }
         }),
-        modifier = Modifier.fillMaxWidth()
+        colors = TextFieldDefaults.colors().copy(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
             .onKeyEvent { keyEvent ->
                 if (keyEvent.nativeKeyEvent.keyCode.equals(NativeKeyEvent.KEYCODE_ENTER)) {
                     coroutineScope.launch {
@@ -230,19 +227,19 @@ fun VRFab(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent
                 }
             }
         },
-
+        containerColor = MaterialTheme.colorScheme.secondary
     ) {
         if (state.value.isRecording) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_talking_24),
                 contentDescription = stringResource(id = R.string.recording),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondary
             )
         } else {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_voice_24),
                 contentDescription = stringResource(id = R.string.add_voice_log),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondary
             )
         }
     }
