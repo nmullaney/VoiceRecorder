@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.speech.SpeechRecognizer
 import android.util.Log
 import android.widget.RemoteViews
 import com.osunick.voicerecorder.data.VoiceMessageRepository
@@ -54,9 +55,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
             R.id.open_button,
             openAppPendingIntent(context)
         )
-        runBlocking {
-            updateLogText(context, views)
-        }
+        refreshLogTextUI(context)
         appWidgetManager.updateAppWidget(
             ComponentName(
                 context,
@@ -113,22 +112,41 @@ class VoiceRecorderWidget : AppWidgetProvider() {
                         )
                         Log.d(TAG, "Speech Saved!")
                     }
-                    updateLogTextUI(context)
+                    refreshLogTextUI(context)
+                }
+
+                override fun onSpeechError(error: Int) {
+                    updateUIForRecordingStop(context)
+                    val errorMessage = context.getString(
+                        when (error) {
+                            SpeechRecognizer.ERROR_NO_MATCH -> R.string.no_speech_detected
+                            else -> R.string.recording_failed
+                    })
+                    updateLogTextUIWithText(context, errorMessage)
+                }
+
+                override fun onSpeechEnded() {
+                    updateUIForRecordingStop(context)
                 }
 
             })
             speechRecognizer.init()
             speechRecognizer.startListening()
         } else if (REFRESH_ACTION == intent.action) {
-            updateLogTextUI(context)
+            refreshLogTextUI(context)
         }
     }
 
-    private fun updateLogTextUI(context: Context) {
-        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
-        runBlocking {
-            updateLogText(context, views)
+    private fun refreshLogTextUI(context: Context) {
+        updateLogTextUI(context) {
+            val lastMessage = messageRepository.getLastMessage()
+            lastMessage?.text ?: context.getString(R.string.no_logs_saved)
         }
+    }
+
+    private fun updateLogTextUI(context: Context, getText: suspend () -> String) {
+        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        updateLogText(views, getText)
         val appWidgetManager = AppWidgetManager.getInstance(context)
         appWidgetManager.updateAppWidget(
             ComponentName(
@@ -138,10 +156,24 @@ class VoiceRecorderWidget : AppWidgetProvider() {
         )
     }
 
-    private suspend fun updateLogText(context: Context, views: RemoteViews) {
-        val lastMessage = messageRepository.getLastMessage()
-        views.setTextViewText(R.id.last_log,
-            lastMessage?.text ?: context.getString(R.string.no_logs_saved)
+    private fun updateLogText(views: RemoteViews, getText: suspend () -> String) {
+        val logText = runBlocking {
+            getText()
+        }
+        views.setTextViewText(R.id.last_log,logText)
+    }
+
+    private fun updateLogTextUIWithText(context: Context, textToDisplay: String) {
+        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        updateLogText(views) {
+            textToDisplay
+        }
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        appWidgetManager.updateAppWidget(
+            ComponentName(
+                context,
+                VoiceRecorderWidget::class.java
+            ), views
         )
     }
 

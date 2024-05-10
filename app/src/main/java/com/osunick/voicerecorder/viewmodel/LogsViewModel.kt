@@ -54,12 +54,15 @@ class LogsViewModel @Inject constructor(
     }
 
     fun saveMessage() {
-        val voiceMessage = VoiceMessage(
-            null,
-            uiState.value.currentMessage ?: "",
-            ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
-        viewModelScope.launch {
-            messageRepository.addMessage(voiceMessage)
+        val message = uiState.value.currentMessage?.trim()
+        if (!message.isNullOrBlank()) {
+            val voiceMessage = VoiceMessage(
+                null,
+                message,
+                ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
+            viewModelScope.launch {
+                messageRepository.addMessage(voiceMessage)
+            }
         }
         _uiState.update {
             it.copy(currentMessage = null)
@@ -75,6 +78,12 @@ class LogsViewModel @Inject constructor(
     fun setIsRecording() {
         _uiState.update {
             it.copy(isRecording = true)
+        }
+    }
+
+    fun endVoiceRecording() {
+        _uiState.update {
+            it.copy(isRecording = false)
         }
     }
 

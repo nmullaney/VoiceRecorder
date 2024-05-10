@@ -69,6 +69,14 @@ class VoiceRecorderActivity : ComponentActivity() {
             override fun onSpeechRecognized(speech: String) {
                 viewModel.saveVoiceRecording(speech)
             }
+
+            override fun onSpeechError(error: Int) {
+                viewModel.endVoiceRecording()
+            }
+
+            override fun onSpeechEnded() {
+                viewModel.endVoiceRecording()
+            }
         })
         speechRecognizer.init()
     }
