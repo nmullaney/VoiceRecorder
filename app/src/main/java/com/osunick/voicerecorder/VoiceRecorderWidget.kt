@@ -30,17 +30,22 @@ class VoiceRecorderWidget : AppWidgetProvider() {
 
     private lateinit var speechRecognizer: VRSpeechRecognizer
 
+    private var remoteViews: RemoteViews? = null
+
+    private fun getRemoteViews(context: Context): RemoteViews {
+        if (remoteViews == null) {
+            remoteViews = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        }
+        return remoteViews!!
+    }
+
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
         Log.d(TAG, "onUpdate")
-        // There may be multiple widgets active, so update all of them
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
-        }
-        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        val views = getRemoteViews(context)
 
         // Set the click listener for the button
         views.setOnClickPendingIntent(
@@ -146,7 +151,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
     }
 
     private fun updateLogTextUI(context: Context, getText: suspend () -> String) {
-        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        val views = getRemoteViews(context)
         updateLogText(views, getText)
         val appWidgetManager = AppWidgetManager.getInstance(context)
         appWidgetManager.updateAppWidget(
@@ -165,7 +170,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
     }
 
     private fun updateLogTextUIWithText(context: Context, textToDisplay: String) {
-        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        val views = getRemoteViews(context)
         updateLogText(views) {
             textToDisplay
         }
@@ -179,7 +184,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
     }
 
     private fun updateUIForRecordingStop(context: Context) {
-        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        val views = getRemoteViews(context)
         views.setTextViewText(R.id.record_button, context.getString(R.string.record))
         views.setInt(
             R.id.record_button,
@@ -195,7 +200,7 @@ class VoiceRecorderWidget : AppWidgetProvider() {
     }
 
     private fun updateUIForRecordingStart(context: Context) {
-        val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
+        val views = getRemoteViews(context)
         views.setTextViewText(R.id.record_button, context.getString(R.string.recording))
         views.setInt(
             R.id.record_button,
@@ -223,18 +228,4 @@ class VoiceRecorderWidget : AppWidgetProvider() {
         const val RECORD_ACTION = "RecordAction"
         const val REFRESH_ACTION = "RefreshAction"
     }
-}
-
-internal fun updateAppWidget(
-    context: Context,
-    appWidgetManager: AppWidgetManager,
-    appWidgetId: Int
-) {
-    val widgetText = context.getString(R.string.record)
-    // Construct the RemoteViews object
-    val views = RemoteViews(context.packageName, R.layout.voice_recorder_widget)
-    views.setTextViewText(R.id.record_button, widgetText)
-
-    // Instruct the widget manager to update the widget
-    appWidgetManager.updateAppWidget(appWidgetId, views)
 }
