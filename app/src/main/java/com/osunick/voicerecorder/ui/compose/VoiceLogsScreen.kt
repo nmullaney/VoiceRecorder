@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,8 +44,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.NativeKeyEvent
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -62,7 +65,6 @@ import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.ui.theme.onPrimaryContainerLight
 import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
 import com.osunick.voicerecorder.ui.theme.primaryContainerLight
-import com.osunick.voicerecorder.ui.theme.secondaryContainerLight
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
 import kotlinx.coroutines.flow.Flow
@@ -93,6 +95,7 @@ fun VRScaffold(
                 .fillMaxWidth()
                 .fillMaxHeight()
         ) {
+            val labels = labelsFlow.collectAsState()
             LogLabelSelector(
                 labelsFlow,
                 eventsFlow
@@ -112,10 +115,21 @@ fun LogLabelSelector(
     eventsFlow: MutableStateFlow<LogEvent>,
     modifier: Modifier = Modifier
 ) {
+    val labels = labelsFlow.collectAsState()
+    val allLabels = labels.value.allLabels
+    val selectedLabel = labels.value.selectedLabel
     val coroutineScope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
-    val labels = labelsFlow.collectAsState()
-    var typingValue by remember { mutableStateOf(labels.value.selectedLabel) }
+    val context = LocalContext.current
+    var currentSelection by remember {
+        mutableStateOf(
+            selectedLabel.ifEmpty { context.getString(R.string.all) })
+    }
+    var typingValue by remember { mutableStateOf("") }
+    val isAllSelected by remember { derivedStateOf { currentSelection == context.getString(R.string.all) } }
+    var isTextFieldFocused by remember {
+        mutableStateOf(false)
+    }
     val focusManager = LocalFocusManager.current
     LaunchedEffect(expanded) {
         if (!expanded) {
@@ -135,8 +149,13 @@ fun LogLabelSelector(
                 expanded = !expanded
             }) {
             OutlinedTextField(
-                modifier = Modifier.menuAnchor(),
-                value = typingValue,
+                modifier = Modifier
+                    .menuAnchor()
+                    .onFocusChanged {
+                        isTextFieldFocused = it.isFocused
+                        typingValue = ""
+                    },
+                value = if (isTextFieldFocused) typingValue else currentSelection,
                 onValueChange = {
                     typingValue = it
                 },
@@ -144,38 +163,60 @@ fun LogLabelSelector(
             )
 
             ExposedDropdownMenu(
+                // Max height prevents the TextField from being covered
+                modifier = Modifier
+                    .heightIn(max = 200.dp)
+                    .exposedDropdownSize(matchTextFieldWidth = true),
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.add_label)) },
+                    text = { Text(stringResource(id = R.string.all)) },
                     onClick = {
                         coroutineScope.launch {
-                            eventsFlow.emit(LogEvent.CreateLabel(typingValue))
+                            eventsFlow.emit(LogEvent.SelectAllLabels)
                         }
+                        currentSelection = context.getString(R.string.all)
                         expanded = false
                     }
                 )
-                DropdownMenuItem(
-                    text = { Text(stringResource(id = R.string.rename_label)) },
-                    onClick = {
-                        coroutineScope.launch {
-                            eventsFlow.emit(
-                                LogEvent.RenameLabel(labels.value.selectedLabel, typingValue)
-                            )
-                            expanded = false
-                        }
-                    }
-                )
-                labels.value.allLabels.forEach { label ->
+                allLabels.filter { it.isNotBlank() && it.startsWith(typingValue) }.forEach { label ->
                     DropdownMenuItem(
                         text = { Text(text = label) },
                         onClick = {
                             coroutineScope.launch {
                                 eventsFlow.emit(LogEvent.SelectLabel(label))
                             }
-                            typingValue = label
+                            currentSelection = label
                             expanded = false
+                        }
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text(context.getString(R.string.add_label, typingValue)) },
+                    onClick = {
+                        coroutineScope.launch {
+                            eventsFlow.emit(LogEvent.CreateLabel(typingValue))
+                        }
+                        currentSelection = typingValue
+                        expanded = false
+                    }
+                )
+                if (!isAllSelected) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                context.getString(R.string.rename_label, selectedLabel, typingValue)
+                            )
+                        },
+                        onClick = {
+                            coroutineScope.launch {
+                                eventsFlow.emit(
+                                    LogEvent.RenameLabel(selectedLabel, typingValue)
+                                )
+                                currentSelection = typingValue
+                                expanded = false
+                            }
                         }
                     )
                 }

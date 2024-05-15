@@ -18,6 +18,7 @@
     <string name="delete">Delete</string>
     <string name="delete_all_logs">Delete all logs?</string>
     <string name="are_you_sure_delete_all">Are you sure you want to delete ALL logs?</string>
+    <string name="are_you_sure_delete_label">Are you sure you want to delete ALL logs with label %1$s?</string>
     <string name="open">Open</string>
     <string name="recording">Recording</string>
     <string name="tap_to_see_last_log">Tap to see last log</string>
@@ -25,7 +26,8 @@
     <string name="recording_failed">Recording failed</string>
     <string name="no_speech_detected">No speech detected</string>
     <string name="label">Label</string>
-    <string name="add_label">Add label</string>
-    <string name="rename_label">Rename label</string>
+    <string name="add_label">Add label %1$s</string>
+    <string name="rename_label">Rename %1$s to %2$s</string>
     <string name="open_and_allow_audio">Please open the app, touch the record button, and enable audio permissions.</string>
+    <string name="all">All</string>
 </resources>

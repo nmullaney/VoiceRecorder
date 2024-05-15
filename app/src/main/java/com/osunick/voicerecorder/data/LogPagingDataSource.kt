@@ -6,6 +6,8 @@ import androidx.paging.PagingState
 import com.osunick.voicerecorder.db.LogDao
 import com.osunick.voicerecorder.db.LogEntity
 
+// Paging data source for logs
+// If labelQuery is null or empty, returns all logs
 class LogPagingDataSource(
     private val labelQuery: String?,
     private val logDao: LogDao
@@ -19,7 +21,12 @@ class LogPagingDataSource(
         val offset = params.key ?: 0
         Log.d("LogPagingDataSource","Loading with offset: $offset, limit: $limit")
         return try {
-            val logEntities = logDao.getMostRecentWithLabel(labelQuery, offset, limit)
+            val logEntities = if (labelQuery.isNullOrEmpty()) {
+                logDao.getMostRecent(offset, limit)
+            } else {
+                logDao.getMostRecentWithLabel(labelQuery, offset, limit)
+            }
+
             val nextKey = if (logEntities.size < limit) null else offset + logEntities.size
             Log.d("LogPagingDataSource","Result with nextKey: $nextKey")
             LoadResult.Page(
