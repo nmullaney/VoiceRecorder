@@ -6,12 +6,14 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -87,7 +89,7 @@ fun VRScaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { VRTopAppBar(eventsFlow) },
         bottomBar = { VRAddLogBar(uiState, eventsFlow) },
-        floatingActionButton = { VRFab(uiState, eventsFlow) }
+        floatingActionButton = {  }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -328,34 +330,69 @@ fun ShareActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
 fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent>) {
     val coroutineScope = rememberCoroutineScope()
     val messageState = uiState.collectAsState()
+
     val requester = remember { FocusRequester() }
-    TextField(
-        messageState.value.currentMessage ?: "",
-        onValueChange = {
-            coroutineScope.launch {
-                eventsFlow.emit(LogEvent.UpdateLog(it))
-            }
-        },
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = {
-            coroutineScope.launch {
-                eventsFlow.emit(LogEvent.Save)
-            }
-        }),
-        modifier = Modifier
-            .fillMaxWidth()
-            .onKeyEvent { keyEvent ->
-                if (keyEvent.nativeKeyEvent.keyCode == NativeKeyEvent.KEYCODE_ENTER) {
-                    coroutineScope.launch {
-                        eventsFlow.emit(LogEvent.Save)
-                    }
-                    return@onKeyEvent true
-                }
-                return@onKeyEvent false
-            }
-            .focusRequester(requester)
-            .focusable()
+    Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 10.dp, vertical = 10.dp)
     )
+    {
+        OutlinedTextField(
+            messageState.value.currentMessage ?: "",
+            onValueChange = {
+                coroutineScope.launch {
+                    eventsFlow.emit(LogEvent.UpdateLog(it))
+                }
+            },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = {
+                coroutineScope.launch {
+                    eventsFlow.emit(LogEvent.Save)
+                }
+            }),
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 0.dp, end=10.dp)
+                .onKeyEvent { keyEvent ->
+                    if (keyEvent.nativeKeyEvent.keyCode == NativeKeyEvent.KEYCODE_ENTER) {
+                        coroutineScope.launch {
+                            eventsFlow.emit(LogEvent.Save)
+                        }
+                        return@onKeyEvent true
+                    }
+                    return@onKeyEvent false
+                }
+                .focusRequester(requester)
+                .focusable(),
+            shape = RoundedCornerShape(40.dp)
+
+        )
+        IconButton(
+            onClick = {
+                if (!messageState.value.isRecording) {
+                    coroutineScope.launch {
+                        eventsFlow.emit(LogEvent.StartRecording)
+                    }
+                }
+            },
+            Modifier
+                .background(MaterialTheme.colorScheme.secondary, CircleShape)
+        ) {
+            if (messageState.value.isRecording) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_talking_24),
+                    contentDescription = stringResource(id = R.string.recording),
+                    tint = MaterialTheme.colorScheme.onSecondary
+                )
+            } else {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_voice_24),
+                    contentDescription = stringResource(id = R.string.add_voice_log),
+                    tint = MaterialTheme.colorScheme.onSecondary
+                )
+            }
+        }
+    }
 }
 
 @Composable
