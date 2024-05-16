@@ -18,7 +18,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.osunick.voicerecorder.extensions.toast
 import com.osunick.voicerecorder.speech.OnSpeechEventListener
 import com.osunick.voicerecorder.speech.VRSpeechRecognizer
-import com.osunick.voicerecorder.ui.compose.VRScaffold
+import com.osunick.voicerecorder.ui.compose.VoiceMessageListDetailScaffold
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsViewModel
@@ -41,11 +41,12 @@ class VoiceRecorderActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             VoiceRecorderTheme {
-                VRScaffold(
+                VoiceMessageListDetailScaffold(
                     viewModel.uiState,
                     viewModel.messageFlow,
                     viewModel.labelsFlow,
-                    viewModel.eventsFlow)
+                    viewModel.eventsFlow,
+                    viewModel.navEventsFlow)
             }
         }
     }
@@ -93,13 +94,14 @@ class VoiceRecorderActivity : ComponentActivity() {
                             share()
                         }
                         LogEvent.DeleteAllLogs -> deleteAllLogs(viewModel.labelsFlow.value.selectedLabel)
-                        is LogEvent.UpdateLog -> viewModel.updateMessage(it.logText)
+                        is LogEvent.UpdateLogMessage -> viewModel.updateMessage(it.logText)
                         LogEvent.StartRecording -> startRecording()
                         is LogEvent.DeleteLog -> deleteLog(it.id)
                         is LogEvent.CreateLabel -> viewModel.addLabel(it.newLabel)
                         is LogEvent.RenameLabel -> viewModel.renameLabel(it.oldLabel, it.newLabel)
                         is LogEvent.SelectLabel -> viewModel.setSelectedLabel(it.selectedLabel)
                         LogEvent.SelectAllLabels -> viewModel.setSelectedLabelToAll()
+                        is LogEvent.UpdateLog -> viewModel.updateMessage(it.voiceMessage)
                     }
                     if (it != LogEvent.None) {
                         viewModel.clearEvent()
