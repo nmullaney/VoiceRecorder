@@ -194,17 +194,19 @@ fun LogLabelSelector(
                         }
                     )
                 }
-                DropdownMenuItem(
-                    text = { Text(context.getString(R.string.add_label, typingValue)) },
-                    onClick = {
-                        coroutineScope.launch {
-                            eventsFlow.emit(LogEvent.CreateLabel(typingValue))
+                if (typingValue.isNotBlank()) {
+                    DropdownMenuItem(
+                        text = { Text(context.getString(R.string.add_label, typingValue)) },
+                        onClick = {
+                            coroutineScope.launch {
+                                eventsFlow.emit(LogEvent.CreateLabel(typingValue))
+                            }
+                            currentSelection = typingValue
+                            expanded = false
                         }
-                        currentSelection = typingValue
-                        expanded = false
-                    }
-                )
-                if (!isAllSelected) {
+                    )
+                }
+                if (!isAllSelected && typingValue.isNotBlank()) {
                     DropdownMenuItem(
                         text = {
                             Text(
