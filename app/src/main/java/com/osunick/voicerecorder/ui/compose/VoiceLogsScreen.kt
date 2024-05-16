@@ -86,8 +86,7 @@ fun VRScaffold(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { VRTopAppBar(eventsFlow) },
-        bottomBar = { VRAddLogBar(uiState, eventsFlow) },
-        floatingActionButton = {  }
+        bottomBar = { VRAddLogBar(uiState, eventsFlow) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -293,7 +292,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
     val requester = remember { FocusRequester() }
     Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 10.dp, vertical = 10.dp)
+        .padding(horizontal = 12.dp, vertical = 12.dp)
     )
     {
         OutlinedTextField(
@@ -311,7 +310,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
             }),
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 0.dp, end=10.dp)
+                .padding(start = 0.dp, end=12.dp)
                 .onKeyEvent { keyEvent ->
                     if (keyEvent.nativeKeyEvent.keyCode == NativeKeyEvent.KEYCODE_ENTER) {
                         coroutineScope.launch {
@@ -323,7 +322,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
                 }
                 .focusRequester(requester)
                 .focusable(),
-            shape = RoundedCornerShape(40.dp)
+            shape = RoundedCornerShape(36.dp)
 
         )
         IconButton(
@@ -354,35 +353,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
     }
 }
 
-@Composable
-fun VRFab(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent>) {
-    val coroutineScope = rememberCoroutineScope()
-    val state = uiState.collectAsState()
-    FloatingActionButton(
-        onClick = {
-            if (!state.value.isRecording) {
-                coroutineScope.launch {
-                    eventsFlow.emit(LogEvent.StartRecording)
-                }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.secondary
-    ) {
-        if (state.value.isRecording) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_talking_24),
-                contentDescription = stringResource(id = R.string.recording),
-                tint = MaterialTheme.colorScheme.onSecondary
-            )
-        } else {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_voice_24),
-                contentDescription = stringResource(id = R.string.add_voice_log),
-                tint = MaterialTheme.colorScheme.onSecondary
-            )
-        }
-    }
-}
+
 
 fun formatDateTime(zonedDateTime: ZonedDateTime): String =
     zonedDateTime
