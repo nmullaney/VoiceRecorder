@@ -1,5 +1,6 @@
 package com.osunick.voicerecorder.ui.compose
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -20,19 +21,24 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator
+import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -69,9 +75,13 @@ import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
 import com.osunick.voicerecorder.ui.theme.primaryContainerLight
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
+import com.osunick.voicerecorder.viewmodel.NavEvent
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -80,17 +90,67 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun VRScaffold(
+fun VoiceMessageListDetailScaffold(
     uiState: StateFlow<LogsUiState>,
     messageFlow: Flow<PagingData<VoiceMessage>>,
     labelsFlow: StateFlow<LogLabels>,
-    eventsFlow: MutableStateFlow<LogEvent>
+    eventsFlow: MutableStateFlow<LogEvent>,
+    navEventsFlow: SharedFlow<NavEvent>
+) {
+    val navigator = rememberListDetailPaneScaffoldNavigator<VoiceMessage>()
+
+    BackHandler(navigator.canNavigateBack()) {
+        navigator.navigateBack()
+    }
+
+    LaunchedEffect(navigator) {
+        navEventsFlow.collectLatest {
+            if (it == NavEvent.Back) {
+                navigator.navigateBack()
+            }
+        }
+    }
+
+    ListDetailPaneScaffold(
+        directive = navigator.scaffoldDirective,
+        value = navigator.scaffoldValue,
+        listPane = {
+            AnimatedPane {
+                LogListScaffold(
+                    uiState = uiState,
+                    messageFlow = messageFlow,
+                    labelsFlow = labelsFlow,
+                    eventsFlow = eventsFlow,
+                    navigator = navigator
+                )
+            }
+        },
+        detailPane = {
+            AnimatedPane {
+                EditLogScaffold(
+                    labelsFlow = labelsFlow,
+                    eventsFlow = eventsFlow,
+                    navigator = navigator)
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun LogListScaffold(
+    uiState: StateFlow<LogsUiState>,
+    messageFlow: Flow<PagingData<VoiceMessage>>,
+    labelsFlow: StateFlow<LogLabels>,
+    eventsFlow: MutableStateFlow<LogEvent>,
+    navigator: ThreePaneScaffoldNavigator<VoiceMessage>
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { VRTopAppBar(eventsFlow) },
-        bottomBar = { VRAddLogBar(uiState, eventsFlow) }
+        topBar = { LogListAppBar(eventsFlow) },
+        bottomBar = { AddLogBar(uiState, eventsFlow) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -98,45 +158,107 @@ fun VRScaffold(
                 .fillMaxWidth()
                 .fillMaxHeight()
         ) {
-            val labels = labelsFlow.collectAsState()
             LogLabelSelector(
                 labelsFlow,
                 eventsFlow
             )
             VoiceLogList(
                 messageFlow,
-                eventsFlow
+                onItemClick = { item ->
+                    // Navigate to the detail pane with the passed item
+                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, item)
+                },
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun EditLogScaffold(
+    labelsFlow: StateFlow<LogLabels>,
+    eventsFlow: MutableStateFlow<LogEvent>,
+    navigator: ThreePaneScaffoldNavigator<VoiceMessage>
+) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = { EditLogTopBar(navigator, eventsFlow) }
+    ) { innerPadding ->
+        navigator.currentDestination?.content?.let {
+            EditVoiceLog(it, labelsFlow, eventsFlow, Modifier.padding(innerPadding))
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun topAppBarColors() =
+    TopAppBarDefaults.mediumTopAppBarColors(
+    containerColor = MaterialTheme.colorScheme.primary,
+    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun EditLogTopBar(navigator: ThreePaneScaffoldNavigator<VoiceMessage>, eventsFlow: MutableStateFlow<LogEvent>) {
+    TopAppBar(
+        modifier = Modifier.fillMaxWidth(),
+        colors = topAppBarColors(),
+        title = { Text(stringResource(id = R.string.edit_log)) },
+        actions = {
+            navigator.currentDestination?.content?.id?.let {
+                DeleteLogActionBarButton(it, eventsFlow)
+            }
+        })
+}
+
+@Composable
+fun DeleteLogActionBarButton(id: Int, eventsFlow: MutableStateFlow<LogEvent>) {
+    val coroutineScope = rememberCoroutineScope()
+    IconButton(onClick = {
+        coroutineScope.launch {
+            eventsFlow.emit(LogEvent.DeleteLog(id))
+        }
+    }) {
+        Icon(Icons.Filled.Delete, stringResource(id = R.string.deleteall))
+    }
+}
+
+@Composable
 fun LogLabelSelector(
     labelsFlow: StateFlow<LogLabels>,
     eventsFlow: MutableStateFlow<LogEvent>,
     modifier: Modifier = Modifier
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val labels = labelsFlow.collectAsState()
     val allLabels = labels.value.allLabels
     val selectedLabel = labels.value.selectedLabel
-    val coroutineScope = rememberCoroutineScope()
-    var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    var currentSelection by remember {
-        mutableStateOf(
-            selectedLabel.ifEmpty { context.getString(R.string.all) })
-    }
-    var typingValue by remember { mutableStateOf("") }
-    val isAllSelected by remember { derivedStateOf { currentSelection == context.getString(R.string.all) } }
-    var isTextFieldFocused by remember {
-        mutableStateOf(false)
-    }
-    val focusManager = LocalFocusManager.current
-    LaunchedEffect(expanded) {
-        if (!expanded) {
-            focusManager.clearFocus(true)
+    val initialSelection = selectedLabel.ifEmpty { context.getString(R.string.all) }
+    val labelSelectionEventFlow = MutableStateFlow<LabelSelectEvent>(LabelSelectEvent.None)
+    LaunchedEffect(labelSelectionEventFlow) {
+        labelSelectionEventFlow.collect {
+            when (it) {
+                LabelSelectEvent.SelectAll ->
+                    coroutineScope.launch {
+                        eventsFlow.emit(LogEvent.SelectAllLabels)
+                    }
+                is LabelSelectEvent.CreateLabel ->
+                    coroutineScope.launch {
+                        eventsFlow.emit(LogEvent.CreateLabel(it.label))
+                    }
+                is LabelSelectEvent.RenameLabel ->
+                    coroutineScope.launch {
+                        eventsFlow.emit(LogEvent.RenameLabel(it.oldLabel, it.newLabel))
+                    }
+                is LabelSelectEvent.SelectLabel ->
+                    coroutineScope.launch {
+                        eventsFlow.emit(LogEvent.SelectLabel(it.label))
+                    }
+                LabelSelectEvent.None -> {}
+            }
         }
     }
     Box(
@@ -145,87 +267,196 @@ fun LogLabelSelector(
             .background(MaterialTheme.colorScheme.surfaceContainer),
         contentAlignment = Alignment.Center
     ) {
-        ExposedDropdownMenuBox(
-            modifier = Modifier.padding(4.dp),
-            expanded = expanded,
-            onExpandedChange = {
-                expanded = !expanded
-            }) {
-            OutlinedTextField(
-                modifier = Modifier
-                    .menuAnchor()
-                    .onFocusChanged {
-                        isTextFieldFocused = it.isFocused
-                        typingValue = ""
-                    },
-                value = if (isTextFieldFocused) typingValue else currentSelection,
-                onValueChange = {
-                    typingValue = it
-                },
-                label = { Text(stringResource(id = R.string.label)) }
-            )
+        LabelSelectionDropDown(
+            allLabels,
+            initialSelection,
+            labelSelectionEventFlow,
+            includeAll = true,
+            includeCreate = true,
+            includeRename = true,
+        )
+    }
+}
 
-            ExposedDropdownMenu(
-                // Max height prevents the TextField from being covered
-                modifier = Modifier
-                    .heightIn(max = 200.dp)
-                    .exposedDropdownSize(matchTextFieldWidth = true),
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
+sealed interface LabelSelectEvent {
+    data object None : LabelSelectEvent
+    data object SelectAll : LabelSelectEvent
+    data class SelectLabel(val label: String): LabelSelectEvent
+    data class CreateLabel(val label: String): LabelSelectEvent
+    data class RenameLabel(val oldLabel: String, val newLabel: String): LabelSelectEvent
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LabelSelectionDropDown(
+    allLabels: List<String> = listOf(),
+    initialSelection: String = "",
+    labelSelectEventsFlow: MutableStateFlow<LabelSelectEvent>,
+    includeAll: Boolean = false,
+    includeCreate: Boolean = false,
+    includeRename: Boolean = false,
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var expanded by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    LaunchedEffect(expanded) {
+        if (!expanded) {
+            focusManager.clearFocus(true)
+        }
+    }
+    var isTextFieldFocused by remember {
+        mutableStateOf(false)
+    }
+    var typingValue by remember { mutableStateOf("") }
+    var currentSelection by remember { mutableStateOf(initialSelection) }
+    val isAllSelected by remember { derivedStateOf { currentSelection == context.getString(R.string.all) } }
+    ExposedDropdownMenuBox(
+        modifier = Modifier.padding(4.dp),
+        expanded = expanded,
+        onExpandedChange = {
+            expanded = !expanded
+        }) {
+        OutlinedTextField(
+            modifier = Modifier
+                .menuAnchor()
+                .onFocusChanged {
+                    isTextFieldFocused = it.isFocused
+                    typingValue = ""
+                },
+            value = if (isTextFieldFocused) typingValue else currentSelection,
+            onValueChange = {
+                typingValue = it
+            },
+            label = { Text(stringResource(id = R.string.label)) }
+        )
+
+        ExposedDropdownMenu(
+            // Max height prevents the TextField from being covered
+            modifier = Modifier
+                .heightIn(max = 200.dp)
+                .exposedDropdownSize(matchTextFieldWidth = true),
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            if (includeAll) {
                 DropdownMenuItem(
                     text = { Text(stringResource(id = R.string.all)) },
                     onClick = {
                         coroutineScope.launch {
-                            eventsFlow.emit(LogEvent.SelectAllLabels)
+                            labelSelectEventsFlow.emit(LabelSelectEvent.SelectAll)
                         }
                         currentSelection = context.getString(R.string.all)
                         expanded = false
                     }
                 )
-                allLabels.filter { it.isNotBlank() && it.startsWith(typingValue) }.forEach { label ->
-                    DropdownMenuItem(
-                        text = { Text(text = label) },
-                        onClick = {
-                            coroutineScope.launch {
-                                eventsFlow.emit(LogEvent.SelectLabel(label))
-                            }
-                            currentSelection = label
-                            expanded = false
+            }
+            allLabels.filter { it.isNotBlank() && it.startsWith(typingValue) }.forEach { label ->
+                DropdownMenuItem(
+                    text = { Text(text = label) },
+                    onClick = {
+                        coroutineScope.launch {
+                            labelSelectEventsFlow.emit(LabelSelectEvent.SelectLabel(label))
                         }
-                    )
-                }
-                if (typingValue.isNotBlank()) {
-                    DropdownMenuItem(
-                        text = { Text(context.getString(R.string.add_label, typingValue)) },
-                        onClick = {
-                            coroutineScope.launch {
-                                eventsFlow.emit(LogEvent.CreateLabel(typingValue))
-                            }
+                        currentSelection = label
+                        expanded = false
+                    }
+                )
+            }
+            if (includeCreate && typingValue.isNotBlank()) {
+                DropdownMenuItem(
+                    text = { Text(context.getString(R.string.add_label, typingValue)) },
+                    onClick = {
+                        coroutineScope.launch {
+                            labelSelectEventsFlow.emit(LabelSelectEvent.CreateLabel(typingValue))
+                        }
+                        currentSelection = typingValue
+                        expanded = false
+                    }
+                )
+            }
+            if (includeRename && !isAllSelected && typingValue.isNotBlank()) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            context.getString(R.string.rename_label, initialSelection, typingValue)
+                        )
+                    },
+                    onClick = {
+                        coroutineScope.launch {
+                            labelSelectEventsFlow.emit(
+                                LabelSelectEvent.RenameLabel(initialSelection, typingValue)
+                            )
                             currentSelection = typingValue
                             expanded = false
                         }
-                    )
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun EditVoiceLog(
+    message: VoiceMessage,
+    labelsFlow: StateFlow<LogLabels>,
+    eventsFlow: MutableStateFlow<LogEvent>,
+    modifier: Modifier = Modifier) {
+    val coroutineScope = rememberCoroutineScope()
+    var editedText by remember { mutableStateOf(message.text) }
+    var editedLabel by remember { mutableStateOf(message.label) }
+    Column(
+        modifier = modifier.padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.Start) {
+        Text(
+            text = formatDateTime(message.dateTime),
+            color = onSurfaceVariantLight,
+            style = Typography.labelMedium
+        )
+        OutlinedTextField(
+            value = editedText,
+            onValueChange = { newText ->
+                editedText = newText
+            },
+            shape = RoundedCornerShape(40.dp)
+        )
+        val labelState = labelsFlow.collectAsState()
+        val labelSelectEventsFlow = remember { MutableStateFlow<LabelSelectEvent>(LabelSelectEvent.None) }
+        LaunchedEffect(labelSelectEventsFlow) {
+            labelSelectEventsFlow.collectLatest {
+                when(it) {
+                    is LabelSelectEvent.SelectLabel -> {
+                        editedLabel = it.label
+                    }
+                    is LabelSelectEvent.CreateLabel -> {
+                        editedLabel = it.label
+                    }
+                    else -> {}
+
                 }
-                if (!isAllSelected && typingValue.isNotBlank()) {
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                context.getString(R.string.rename_label, selectedLabel, typingValue)
-                            )
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                eventsFlow.emit(
-                                    LogEvent.RenameLabel(selectedLabel, typingValue)
-                                )
-                                currentSelection = typingValue
-                                expanded = false
-                            }
-                        }
+            }
+        }
+        LabelSelectionDropDown(
+            labelState.value.allLabels,
+            message.label ?: "",
+            labelSelectEventsFlow,
+            includeAll = false,
+            includeCreate = true,
+            includeRename = false,
+        )
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                coroutineScope.launch {
+                    eventsFlow.emit(LogEvent.UpdateLog(
+                        message.copy(text = editedText, label = editedLabel))
                     )
                 }
             }
+        ) {
+            Text(stringResource(id = R.string.update))
         }
     }
 }
@@ -233,12 +464,11 @@ fun LogLabelSelector(
 @Composable
 fun VoiceLogList(
     messageFlow: Flow<PagingData<VoiceMessage>>,
-    eventsFlow: MutableStateFlow<LogEvent>,
+    onItemClick: (VoiceMessage) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var previousDate: LocalDate? = null
     val lazyPagerItems = messageFlow.collectAsLazyPagingItems()
-    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = modifier
             .fillMaxHeight()
@@ -285,11 +515,7 @@ fun VoiceLogList(
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                                 .clickable {
-                                    coroutineScope.launch {
-                                        message.id?.let {
-                                            eventsFlow.emit(LogEvent.DeleteLog(it))
-                                        }
-                                    }
+                                    onItemClick(message)
                                 },
                             text = message.text,
                             color = onPrimaryContainerLight,
@@ -305,14 +531,10 @@ fun VoiceLogList(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VRTopAppBar(eventsFlow: MutableStateFlow<LogEvent>) {
+fun LogListAppBar(eventsFlow: MutableStateFlow<LogEvent>) {
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.onPrimary,
-            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-        ),
+        colors = topAppBarColors(),
         title = { Text(stringResource(id = R.string.voice_logs)) },
         actions = {
             DeleteActionBarButton(eventsFlow)
@@ -346,7 +568,7 @@ fun ShareActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
 
 
 @Composable
-fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent>) {
+fun AddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent>) {
     val coroutineScope = rememberCoroutineScope()
     val messageState = uiState.collectAsState()
 
@@ -360,7 +582,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
             messageState.value.currentMessage ?: "",
             onValueChange = {
                 coroutineScope.launch {
-                    eventsFlow.emit(LogEvent.UpdateLog(it))
+                    eventsFlow.emit(LogEvent.UpdateLogMessage(it))
                 }
             },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -371,7 +593,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
             }),
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 0.dp, end=12.dp)
+                .padding(start = 0.dp, end = 10.dp)
                 .onKeyEvent { keyEvent ->
                     if (keyEvent.nativeKeyEvent.keyCode == NativeKeyEvent.KEYCODE_ENTER) {
                         coroutineScope.launch {
@@ -415,7 +637,6 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
 }
 
 
-
 fun formatDateTime(zonedDateTime: ZonedDateTime): String =
     zonedDateTime
         .withZoneSameInstant(ZoneId.systemDefault())
@@ -439,7 +660,7 @@ fun formatDate(zonedDateTime: ZonedDateTime): String =
 @Composable
 fun VRAppPreview() {
     VoiceRecorderTheme {
-        VRScaffold(
+        VoiceMessageListDetailScaffold(
             uiState = MutableStateFlow(
                 LogsUiState(
                     "current message",
@@ -464,7 +685,8 @@ fun VRAppPreview() {
                     listOf("Selected", "Not Selected")
                 )
             ),
-            eventsFlow = MutableStateFlow(LogEvent.None)
+            eventsFlow = MutableStateFlow(LogEvent.None),
+            navEventsFlow = MutableSharedFlow()
         )
     }
 }

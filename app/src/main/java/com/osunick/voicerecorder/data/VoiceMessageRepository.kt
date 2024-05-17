@@ -32,6 +32,12 @@ class VoiceMessageRepository @Inject constructor(
         pagingDataSource?.invalidate()
     }
 
+    suspend fun updateMessage(message: VoiceMessage) {
+        val logEntity = MessageMapper.mapToLogEntity(message)
+        logEntity.id?.let { logDao.update(id = it, text = logEntity.text, label = logEntity.label) }
+        pagingDataSource?.invalidate()
+    }
+
     suspend fun deleteMessage(id: Int) {
         logDao.delete(id)
         pagingDataSource?.invalidate()
@@ -115,7 +121,7 @@ class VoiceMessageRepository @Inject constructor(
 
 object MessageMapper {
 
-    fun mapToLogEntity(voiceMessage: VoiceMessage, label: String): LogEntity {
+    fun mapToLogEntity(voiceMessage: VoiceMessage, label: String? = null): LogEntity {
         return LogEntity(
             voiceMessage.id,
             voiceMessage.dateTime,

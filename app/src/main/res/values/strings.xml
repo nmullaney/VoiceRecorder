@@ -30,4 +30,6 @@
     <string name="rename_label">Rename %1$s to %2$s</string>
     <string name="open_and_allow_audio">Please open the app, touch the record button, and enable audio permissions.</string>
     <string name="all">All</string>
+    <string name="edit_log">Edit Log</string>
+    <string name="update">Update</string>
 </resources>

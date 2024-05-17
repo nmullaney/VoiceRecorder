@@ -12,9 +12,12 @@ import com.osunick.voicerecorder.model.LogLabels
 import com.osunick.voicerecorder.model.VoiceMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
@@ -40,6 +43,12 @@ class LogsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, LogLabels("", listOf("")))
     val messageFlow: Flow<PagingData<VoiceMessage>> = messageRepository.messagePagerFlow()
         .cachedIn(viewModelScope)
+    val _navEventsFlow = MutableSharedFlow<NavEvent>(
+        replay = 1, extraBufferCapacity = 1,
+        onBufferOverflow =
+        BufferOverflow.DROP_OLDEST
+    )
+    val navEventsFlow = _navEventsFlow.asSharedFlow()
     private val _uiState = MutableStateFlow(LogsUiState(currentMessage = null, isRecording = false))
     val uiState = _uiState.asStateFlow()
 
@@ -52,6 +61,7 @@ class LogsViewModel @Inject constructor(
     fun deleteMessage(id: Int) {
         viewModelScope.launch {
             messageRepository.deleteMessage(id)
+            _navEventsFlow.emit(NavEvent.Back)
         }
     }
 
@@ -74,6 +84,13 @@ class LogsViewModel @Inject constructor(
         }
         _uiState.update {
             it.copy(currentMessage = null)
+        }
+    }
+
+    fun updateMessage(voiceMessage: VoiceMessage) {
+        viewModelScope.launch {
+            messageRepository.updateMessage(voiceMessage)
+            _navEventsFlow.emit(NavEvent.Back)
         }
     }
 
@@ -167,10 +184,16 @@ sealed class LogEvent {
     data object Share: LogEvent()
     data object DeleteAllLogs: LogEvent()
     data object StartRecording: LogEvent()
-    data class UpdateLog(val logText: String): LogEvent()
+    data class UpdateLogMessage(val logText: String): LogEvent()
+    data class UpdateLog(val voiceMessage: VoiceMessage): LogEvent()
     data class DeleteLog(val id: Int): LogEvent()
     data class CreateLabel(val newLabel: String): LogEvent()
     data class RenameLabel(val oldLabel: String, val newLabel: String): LogEvent()
     data class SelectLabel(val selectedLabel: String): LogEvent()
     data object SelectAllLabels: LogEvent()
+}
+
+sealed class NavEvent {
+    data object Back : NavEvent()
+    data object None : NavEvent()
 }

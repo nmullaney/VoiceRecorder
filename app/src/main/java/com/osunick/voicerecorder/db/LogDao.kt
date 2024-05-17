@@ -20,6 +20,9 @@ interface LogDao {
     @Query("SELECT * from logs WHERE label = :label ORDER BY datetime DESC LIMIT :limit OFFSET :offset")
     suspend fun getMostRecentWithLabel(label: String?, offset: Int, limit: Int): List<LogEntity>
 
+    @Query("UPDATE logs SET label = :label, text = :text where id = :id")
+    suspend fun update(id: Int, label: String?, text: String?)
+
     @Query("UPDATE logs SET label = :newLabel where label = :oldLabel")
     suspend fun updateLabel(oldLabel: String?, newLabel: String?)
 
