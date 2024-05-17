@@ -186,15 +186,7 @@ fun LogLabelSelector(
         }
     }
 }
-@Composable
-fun DateHeader(date: LocalDate) {
-    val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    Text(
-        text = date.format(dateFormatter),
-        style = MaterialTheme.typography.labelMedium,
-        modifier = Modifier.padding(vertical = 8.dp)
-    )
-}
+
 @Composable
 fun VoiceLogList(
     messageFlow: Flow<PagingData<VoiceMessage>>,
@@ -220,31 +212,28 @@ fun VoiceLogList(
         ) {
             items(count = lazyPagerItems.itemCount) { index ->
                 lazyPagerItems[index]?.let { message ->
-                    val currentDate = message.dateTime.toLocalDate()
 
-                    if (currentDate != previousDate || previousDate == null) {
-
-                        previousDate = currentDate
-                        Row(modifier = Modifier.padding(4.dp)) {
+                    Row(modifier = Modifier.padding(4.dp)) {
+                        Column() {
                             Text(
                                 modifier = Modifier
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .padding(horizontal = 8.dp, vertical = 0.dp)
                                 ,
                                 text = formatDate(message.dateTime),
                                 color = onSurfaceVariantLight,
                                 style = Typography.labelMedium
                             )
+                            Text(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ,
+                                text = formatTime(message.dateTime),
+                                color = onSurfaceVariantLight,
+                                style = Typography.labelMedium
+                            )
                         }
-                    }
-                    Row(modifier = Modifier.padding(4.dp)) {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ,
-                            text = formatTime(message.dateTime),
-                            color = onSurfaceVariantLight,
-                            style = Typography.labelMedium
-                        )
+
+
                         Text(
                             modifier = Modifier
                                 .background(
@@ -264,6 +253,7 @@ fun VoiceLogList(
                             style = Typography.titleMedium
                         )
                     }
+
                 }
             }
         }
@@ -393,7 +383,7 @@ fun formatTime(zonedDateTime: ZonedDateTime): String =
     zonedDateTime
         .withZoneSameInstant(ZoneId.systemDefault())
         .toLocalDateTime()
-        .format(DateTimeFormatter.ofPattern("h:mm:ss a"))
+        .format(DateTimeFormatter.ofPattern("HH:mm"))
 
 fun formatDate(zonedDateTime: ZonedDateTime): String =
     zonedDateTime
