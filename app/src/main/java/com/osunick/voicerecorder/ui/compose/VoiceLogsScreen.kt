@@ -72,8 +72,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -86,8 +88,7 @@ fun VRScaffold(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { VRTopAppBar(eventsFlow) },
-        bottomBar = { VRAddLogBar(uiState, eventsFlow) },
-        floatingActionButton = {  }
+        bottomBar = { VRAddLogBar(uiState, eventsFlow) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -192,6 +193,7 @@ fun VoiceLogList(
     eventsFlow: MutableStateFlow<LogEvent>,
     modifier: Modifier = Modifier
 ) {
+    var previousDate: LocalDate? = null
     val lazyPagerItems = messageFlow.collectAsLazyPagingItems()
     val coroutineScope = rememberCoroutineScope()
     Box(
@@ -211,13 +213,27 @@ fun VoiceLogList(
             items(count = lazyPagerItems.itemCount) { index ->
                 lazyPagerItems[index]?.let { message ->
 
-                    Column(modifier = Modifier.padding(4.dp)) {
-                        Text(
-                            modifier = Modifier,
-                            text = formatDateTime(message.dateTime),
-                            color = onSurfaceVariantLight,
-                            style = Typography.labelMedium
-                        )
+                    Row(modifier = Modifier.padding(4.dp)) {
+                        Column() {
+                            Text(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 0.dp)
+                                ,
+                                text = formatDate(message.dateTime),
+                                color = onSurfaceVariantLight,
+                                style = Typography.labelMedium
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ,
+                                text = formatTime(message.dateTime),
+                                color = onSurfaceVariantLight,
+                                style = Typography.labelMedium
+                            )
+                        }
+
+
                         Text(
                             modifier = Modifier
                                 .background(
@@ -237,6 +253,7 @@ fun VoiceLogList(
                             style = Typography.titleMedium
                         )
                     }
+
                 }
             }
         }
@@ -293,7 +310,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
     val requester = remember { FocusRequester() }
     Row (verticalAlignment = Alignment.CenterVertically, modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 10.dp, vertical = 10.dp)
+        .padding(horizontal = 12.dp, vertical = 12.dp)
     )
     {
         OutlinedTextField(
@@ -311,7 +328,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
             }),
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 0.dp, end=10.dp)
+                .padding(start = 0.dp, end=12.dp)
                 .onKeyEvent { keyEvent ->
                     if (keyEvent.nativeKeyEvent.keyCode == NativeKeyEvent.KEYCODE_ENTER) {
                         coroutineScope.launch {
@@ -354,41 +371,25 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
     }
 }
 
-@Composable
-fun VRFab(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<LogEvent>) {
-    val coroutineScope = rememberCoroutineScope()
-    val state = uiState.collectAsState()
-    FloatingActionButton(
-        onClick = {
-            if (!state.value.isRecording) {
-                coroutineScope.launch {
-                    eventsFlow.emit(LogEvent.StartRecording)
-                }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.secondary
-    ) {
-        if (state.value.isRecording) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_talking_24),
-                contentDescription = stringResource(id = R.string.recording),
-                tint = MaterialTheme.colorScheme.onSecondary
-            )
-        } else {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_voice_24),
-                contentDescription = stringResource(id = R.string.add_voice_log),
-                tint = MaterialTheme.colorScheme.onSecondary
-            )
-        }
-    }
-}
+
 
 fun formatDateTime(zonedDateTime: ZonedDateTime): String =
     zonedDateTime
         .withZoneSameInstant(ZoneId.systemDefault())
         .toLocalDateTime()
         .format(DateTimeConstants.PrettyDateFormatter)
+
+fun formatTime(zonedDateTime: ZonedDateTime): String =
+    zonedDateTime
+        .withZoneSameInstant(ZoneId.systemDefault())
+        .toLocalDateTime()
+        .format(DateTimeFormatter.ofPattern("HH:mm"))
+
+fun formatDate(zonedDateTime: ZonedDateTime): String =
+    zonedDateTime
+        .withZoneSameInstant(ZoneId.systemDefault())
+        .toLocalDateTime()
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
 
 @Preview(widthDp = 320, heightDp = 640)
