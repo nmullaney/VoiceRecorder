@@ -76,7 +76,8 @@ class LogsViewModel @Inject constructor(
         if (!message.isNullOrBlank()) {
             val voiceMessage = VoiceMessage(
                 text = message,
-                dateTime = ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
+                dateTime = ZonedDateTime.now().withZoneSameInstant(UTCZoneId)
+            )
             viewModelScope.launch {
                 messageRepository.addMessage(voiceMessage)
             }
@@ -114,7 +115,8 @@ class LogsViewModel @Inject constructor(
     fun saveVoiceRecording(text: String) {
         val voiceMessage = VoiceMessage(
             text = text,
-            dateTime = ZonedDateTime.now().withZoneSameInstant(UTCZoneId))
+            dateTime = ZonedDateTime.now().withZoneSameInstant(UTCZoneId)
+        )
         viewModelScope.launch {
             messageRepository.addMessage(voiceMessage)
         }
@@ -149,24 +151,16 @@ class LogsViewModel @Inject constructor(
         }
     }
 
-    suspend fun createFile(logsDir: File): File =
+    // This is for sharing.  We can only share a max of 1MB, but we're going to assume that the
+    // amount of data is less than that and not handle the overflow case (for now).
+    suspend fun createDataString(): String =
         withContext(Dispatchers.IO) {
-            val logFile = File.createTempFile("logs", ".txt", logsDir)
-            val fos = FileOutputStream(logFile, false)
-            try {
-                val header = "UTC Date\tLocal Date\tLabel\tLog\n"
-                fos.write(header.toByteArray())
+            buildString {
+                append("UTC Date\tLocal Date\tLabel\tLog\n")
                 messageRepository.getAllMessages().forEach {
-                    val line = "${formatUTC(it.dateTime)}\t${formatLocal(it.dateTime)}\t${it.label}\t${it.text}\n"
-                    fos.write(line.toByteArray())
+                    append("${formatUTC(it.dateTime)}\t${formatLocal(it.dateTime)}\t${it.label}\t${it.text}\n")
                 }
-            } catch (ioe: IOException) {
-                Log.e("CreateFile", "Something went wrong", ioe)
-            } finally {
-                fos.flush()
-                fos.close()
             }
-            logFile
         }
 
     private fun formatUTC(zonedDateTime: ZonedDateTime) =

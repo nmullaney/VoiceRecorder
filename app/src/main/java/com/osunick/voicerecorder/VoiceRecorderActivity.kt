@@ -121,19 +121,12 @@ class VoiceRecorderActivity : ComponentActivity() {
 
     private fun share() {
         lifecycleScope.launch {
-            val file: File = viewModel.createFile(logsDir())
-            val fileUri = FileProvider.getUriForFile(
-                this@VoiceRecorderActivity,
-                packageName.plus(".fileprovider"),
-                file
-            )
             val shareIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_STREAM, fileUri)
+                putExtra(Intent.EXTRA_TEXT, viewModel.createDataString())
                 type = "text/plain"
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_file)))
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.share_logs)))
         }
     }
 
