@@ -72,8 +72,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -184,13 +186,22 @@ fun LogLabelSelector(
         }
     }
 }
-
+@Composable
+fun DateHeader(date: LocalDate) {
+    val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    Text(
+        text = date.format(dateFormatter),
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(vertical = 8.dp)
+    )
+}
 @Composable
 fun VoiceLogList(
     messageFlow: Flow<PagingData<VoiceMessage>>,
     eventsFlow: MutableStateFlow<LogEvent>,
     modifier: Modifier = Modifier
 ) {
+    var previousDate: LocalDate? = null
     val lazyPagerItems = messageFlow.collectAsLazyPagingItems()
     val coroutineScope = rememberCoroutineScope()
     Box(
@@ -209,11 +220,28 @@ fun VoiceLogList(
         ) {
             items(count = lazyPagerItems.itemCount) { index ->
                 lazyPagerItems[index]?.let { message ->
+                    val currentDate = message.dateTime.toLocalDate()
 
-                    Column(modifier = Modifier.padding(4.dp)) {
+                    if (currentDate != previousDate || previousDate == null) {
+
+                        previousDate = currentDate
+                        Row(modifier = Modifier.padding(4.dp)) {
+                            Text(
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                ,
+                                text = formatDate(message.dateTime),
+                                color = onSurfaceVariantLight,
+                                style = Typography.labelMedium
+                            )
+                        }
+                    }
+                    Row(modifier = Modifier.padding(4.dp)) {
                         Text(
-                            modifier = Modifier,
-                            text = formatDateTime(message.dateTime),
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ,
+                            text = formatTime(message.dateTime),
                             color = onSurfaceVariantLight,
                             style = Typography.labelMedium
                         )
@@ -322,7 +350,7 @@ fun VRAddLogBar(uiState: StateFlow<LogsUiState>, eventsFlow: MutableStateFlow<Lo
                 }
                 .focusRequester(requester)
                 .focusable(),
-            shape = RoundedCornerShape(36.dp)
+            shape = RoundedCornerShape(40.dp)
 
         )
         IconButton(
@@ -360,6 +388,18 @@ fun formatDateTime(zonedDateTime: ZonedDateTime): String =
         .withZoneSameInstant(ZoneId.systemDefault())
         .toLocalDateTime()
         .format(DateTimeConstants.PrettyDateFormatter)
+
+fun formatTime(zonedDateTime: ZonedDateTime): String =
+    zonedDateTime
+        .withZoneSameInstant(ZoneId.systemDefault())
+        .toLocalDateTime()
+        .format(DateTimeFormatter.ofPattern("h:mm:ss a"))
+
+fun formatDate(zonedDateTime: ZonedDateTime): String =
+    zonedDateTime
+        .withZoneSameInstant(ZoneId.systemDefault())
+        .toLocalDateTime()
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
 
 @Preview(widthDp = 320, heightDp = 640)
