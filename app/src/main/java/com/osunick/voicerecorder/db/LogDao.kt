@@ -14,6 +14,9 @@ interface LogDao {
     @Query("SELECT * FROM logs where label = :label")
     suspend fun getAllWithLabel(label: String?): List<LogEntity>
 
+    @Query("SELECT * from logs ORDER BY datetime DESC LIMIT :limit OFFSET :offset")
+    suspend fun getMostRecent(offset: Int, limit: Int): List<LogEntity>
+
     @Query("SELECT * from logs WHERE label = :label ORDER BY datetime DESC LIMIT :limit OFFSET :offset")
     suspend fun getMostRecentWithLabel(label: String?, offset: Int, limit: Int): List<LogEntity>
 

@@ -63,7 +63,6 @@ class VoiceMessageRepository @Inject constructor(
                 PagingConfig(pageSize = PAGE_SIZE)
             ) {
                 val selectedLabel = getSelectedLabel(it)
-                Log.d("Repo", "Selected label for fetching: $selectedLabel")
                 pagingDataSource = LogPagingDataSource(selectedLabel, logDao)
                 pagingDataSource!!
             }.flow.map { pagingData ->
@@ -108,6 +107,7 @@ class VoiceMessageRepository @Inject constructor(
     companion object {
         const val PAGE_SIZE = 10
         val LABEL_PREF_KEY = stringPreferencesKey("selected_label")
+        // This is the default label AND will return all logs in a query
         const val DEFAULT_LABEL = ""
     }
 

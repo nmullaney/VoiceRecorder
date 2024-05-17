@@ -118,6 +118,11 @@ class LogsViewModel @Inject constructor(
             messageRepository.editSelectedLabel(oldName, newName)
         }
 
+    fun setSelectedLabelToAll() =
+        viewModelScope.launch {
+            messageRepository.setSelectedLabel("")
+        }
+
     fun setSelectedLabel(selectedLabel: String) =
         viewModelScope.launch {
             messageRepository.setSelectedLabel(selectedLabel)
@@ -167,4 +172,5 @@ sealed class LogEvent {
     data class CreateLabel(val newLabel: String): LogEvent()
     data class RenameLabel(val oldLabel: String, val newLabel: String): LogEvent()
     data class SelectLabel(val selectedLabel: String): LogEvent()
+    data object SelectAllLabels: LogEvent()
 }

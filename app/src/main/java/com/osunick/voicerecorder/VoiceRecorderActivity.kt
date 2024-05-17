@@ -92,13 +92,14 @@ class VoiceRecorderActivity : ComponentActivity() {
                         LogEvent.Share -> {
                             share()
                         }
-                        LogEvent.DeleteAllLogs -> deleteAllLogs()
+                        LogEvent.DeleteAllLogs -> deleteAllLogs(viewModel.labelsFlow.value.selectedLabel)
                         is LogEvent.UpdateLog -> viewModel.updateMessage(it.logText)
                         LogEvent.StartRecording -> startRecording()
                         is LogEvent.DeleteLog -> deleteLog(it.id)
                         is LogEvent.CreateLabel -> viewModel.addLabel(it.newLabel)
                         is LogEvent.RenameLabel -> viewModel.renameLabel(it.oldLabel, it.newLabel)
                         is LogEvent.SelectLabel -> viewModel.setSelectedLabel(it.selectedLabel)
+                        LogEvent.SelectAllLabels -> viewModel.setSelectedLabelToAll()
                     }
                     if (it != LogEvent.None) {
                         viewModel.clearEvent()
@@ -127,10 +128,15 @@ class VoiceRecorderActivity : ComponentActivity() {
         }
     }
 
-    private fun deleteAllLogs() =
+    private fun deleteAllLogs(selectedLabel: String) {
+        val message = if (selectedLabel.isEmpty()) {
+            getString(R.string.are_you_sure_delete_all)
+        } else {
+            getString(R.string.are_you_sure_delete_label, selectedLabel)
+        }
         AlertDialog.Builder(this)
             .setTitle(R.string.delete_all_logs)
-            .setMessage(R.string.are_you_sure_delete_all)
+            .setMessage(message)
             .setPositiveButton(R.string.delete) { dialog, _ ->
                 viewModel.deleteAllMessages()
                 dialog?.dismiss()
@@ -138,6 +144,7 @@ class VoiceRecorderActivity : ComponentActivity() {
             .setNegativeButton(android.R.string.cancel) { dialog, _ ->
                 dialog?.dismiss()
             }.show()
+    }
 
     private fun deleteLog(id: Int) =
         AlertDialog.Builder(this)
