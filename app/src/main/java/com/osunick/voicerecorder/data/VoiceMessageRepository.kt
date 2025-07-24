@@ -1,6 +1,5 @@
 package com.osunick.voicerecorder.data
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -8,7 +7,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.log
 import androidx.paging.map
 import com.osunick.voicerecorder.db.LogDao
 import com.osunick.voicerecorder.db.LogEntity
@@ -49,7 +47,11 @@ class VoiceMessageRepository @Inject constructor(
     }
 
     suspend fun getAllMessages() =
-        logDao.getAll().map {
+        if (getSelectedLabel().isEmpty()) {
+            logDao.getAll()
+        } else {
+            logDao.getAllWithLabel(getSelectedLabel())
+        }.map {
             MessageMapper.mapToVoiceMessage(it)
         }
 
