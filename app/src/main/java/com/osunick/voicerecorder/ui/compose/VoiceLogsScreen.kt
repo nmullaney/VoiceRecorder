@@ -100,9 +100,12 @@ fun VoiceMessageListDetailScaffold(
     navEventsFlow: SharedFlow<NavEvent>
 ) {
     val navigator = rememberListDetailPaneScaffoldNavigator<VoiceMessage>()
+    val coroutineScope = rememberCoroutineScope()
 
     BackHandler(navigator.canNavigateBack()) {
-        navigator.navigateBack()
+        coroutineScope.launch {
+            navigator.navigateBack()
+        }
     }
 
     LaunchedEffect(navigator) {
@@ -147,6 +150,7 @@ fun LogListScaffold(
     eventsFlow: MutableStateFlow<LogEvent>,
     navigator: ThreePaneScaffoldNavigator<VoiceMessage>
 ) {
+    val coroutineScope = rememberCoroutineScope()
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { LogListAppBar(eventsFlow) },
@@ -166,7 +170,9 @@ fun LogListScaffold(
                 messageFlow,
                 onItemClick = { item ->
                     // Navigate to the detail pane with the passed item
-                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, item)
+                    coroutineScope.launch {
+                        navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, item)
+                    }
                 },
             )
         }
@@ -184,7 +190,7 @@ fun EditLogScaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = { EditLogTopBar(navigator, eventsFlow) }
     ) { innerPadding ->
-        navigator.currentDestination?.content?.let {
+        navigator.currentDestination?.contentKey?.let {
             EditVoiceLog(it, labelsFlow, eventsFlow, Modifier.padding(innerPadding))
         }
     }
@@ -207,7 +213,7 @@ fun EditLogTopBar(navigator: ThreePaneScaffoldNavigator<VoiceMessage>, eventsFlo
         colors = topAppBarColors(),
         title = { Text(stringResource(id = R.string.edit_log)) },
         actions = {
-            navigator.currentDestination?.content?.id?.let {
+            navigator.currentDestination?.contentKey?.id?.let {
                 DeleteLogActionBarButton(it, eventsFlow)
             }
         })
