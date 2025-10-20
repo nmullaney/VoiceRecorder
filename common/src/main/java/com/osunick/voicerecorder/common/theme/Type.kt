@@ -1,4 +1,4 @@
-package com.osunick.voicerecorder.ui.theme
+package com.osunick.voicerecorder.common.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

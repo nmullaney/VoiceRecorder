@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +25,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.osunick.voicerecorder.R
-import com.osunick.voicerecorder.presentation.theme.VoiceLogsTheme
+import com.osunick.voicerecorder.common.theme.VoiceRecorderTheme
 
 class WearVoiceRecorderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +43,7 @@ class WearVoiceRecorderActivity : ComponentActivity() {
 
 @Composable
 fun WearApp(greetingName: String) {
-    VoiceLogsTheme {
+    VoiceRecorderTheme(isSystemInDarkTheme()) {
         Box(
             modifier = Modifier
                 .fillMaxSize()

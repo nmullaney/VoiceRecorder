@@ -1,20 +1,22 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.dagger.hilt.android)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.androidx.room)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.osunick.voicerecorder"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.osunick.voicerecorder"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 3
         versionName = "1.2"
 
@@ -34,11 +36,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
     buildFeatures {
         compose = true
@@ -55,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":common"))
     implementation(libs.hilt.android)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.datastore.preferences)
@@ -70,10 +75,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.core)
     implementation(libs.androidx.room.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

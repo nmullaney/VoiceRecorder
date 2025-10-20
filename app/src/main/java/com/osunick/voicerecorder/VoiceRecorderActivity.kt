@@ -1,5 +1,6 @@
 package com.osunick.voicerecorder
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,17 +10,17 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.osunick.voicerecorder.common.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.extensions.toast
 import com.osunick.voicerecorder.speech.OnSpeechEventListener
 import com.osunick.voicerecorder.speech.VRSpeechRecognizer
 import com.osunick.voicerecorder.ui.compose.VoiceMessageListDetailScaffold
-import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,7 +41,7 @@ class VoiceRecorderActivity : ComponentActivity() {
         setupEventListener()
         enableEdgeToEdge()
         setContent {
-            VoiceRecorderTheme {
+            VoiceRecorderTheme(isSystemInDarkTheme()) {
                 VoiceMessageListDetailScaffold(
                     viewModel.uiState,
                     viewModel.messageFlow,
@@ -184,13 +185,13 @@ class VoiceRecorderActivity : ComponentActivity() {
         when {
             ContextCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.RECORD_AUDIO
+                Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
                 return true
             }
 
             ActivityCompat.shouldShowRequestPermissionRationale(
-                this, android.Manifest.permission.RECORD_AUDIO
+                this, Manifest.permission.RECORD_AUDIO
             ) -> {
                 AlertDialog.Builder(this)
                     .setTitle(R.string.audio_permission_required)
@@ -206,7 +207,7 @@ class VoiceRecorderActivity : ComponentActivity() {
 
             else -> {
                 requestPermissionLauncher.launch(
-                    android.Manifest.permission.RECORD_AUDIO
+                    Manifest.permission.RECORD_AUDIO
                 )
                 return false
             }

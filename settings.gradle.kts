@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "Voice Logs"
 include(":app")
 include(":wear")
+include(":common")

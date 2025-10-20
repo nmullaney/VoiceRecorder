@@ -68,11 +68,11 @@ import com.osunick.voicerecorder.R
 import com.osunick.voicerecorder.date.DateTimeConstants
 import com.osunick.voicerecorder.model.LogLabels
 import com.osunick.voicerecorder.model.VoiceMessage
-import com.osunick.voicerecorder.ui.theme.Typography
-import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
-import com.osunick.voicerecorder.ui.theme.onPrimaryContainerLight
-import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
-import com.osunick.voicerecorder.ui.theme.primaryContainerLight
+import com.osunick.voicerecorder.common.theme.Typography
+import com.osunick.voicerecorder.common.theme.VoiceRecorderTheme
+import com.osunick.voicerecorder.common.theme.onPrimaryContainerLight
+import com.osunick.voicerecorder.common.theme.onSurfaceVariantLight
+import com.osunick.voicerecorder.common.theme.primaryContainerLight
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
 import com.osunick.voicerecorder.viewmodel.NavEvent
@@ -341,7 +341,7 @@ fun LabelSelectionDropDown(
             // Max height prevents the TextField from being covered
             modifier = Modifier
                 .heightIn(max = 200.dp)
-                .exposedDropdownSize(matchTextFieldWidth = true),
+                .exposedDropdownSize(matchAnchorWidth = true),
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
