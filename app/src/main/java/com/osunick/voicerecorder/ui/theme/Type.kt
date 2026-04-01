@@ -1,11 +1,9 @@
 package com.osunick.voicerecorder.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.osunick.voicerecorder.R
 
 import androidx.compose.ui.text.googlefonts.GoogleFont
@@ -36,7 +34,7 @@ val displayFontFamily = FontFamily(
 // Default Material 3 typography values
 val baseline = Typography()
 
-val AppTypography = Typography(
+val VRTypography = Typography(
     displayLarge = baseline.displayLarge.copy(fontFamily = displayFontFamily),
     displayMedium = baseline.displayMedium.copy(fontFamily = displayFontFamily),
     displaySmall = baseline.displaySmall.copy(fontFamily = displayFontFamily),

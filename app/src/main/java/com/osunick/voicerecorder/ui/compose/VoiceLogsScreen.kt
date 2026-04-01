@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,7 +72,7 @@ import com.osunick.voicerecorder.R
 import com.osunick.voicerecorder.date.DateTimeConstants
 import com.osunick.voicerecorder.model.LogLabels
 import com.osunick.voicerecorder.model.VoiceMessage
-import com.osunick.voicerecorder.ui.theme.AppTypography
+import com.osunick.voicerecorder.ui.theme.VRTypography
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.ui.theme.onPrimaryContainerLight
 import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
@@ -430,7 +428,7 @@ fun EditVoiceLog(
         Text(
             text = formatDateTime(message.dateTime),
             color = onSurfaceVariantLight,
-            style = AppTypography.labelMedium
+            style = VRTypography.labelMedium
         )
         OutlinedTextField(
             value = editedText,
@@ -511,7 +509,7 @@ fun VoiceLogList(
                                 ,
                                 text = formatDate(message.dateTime),
                                 color = onSurfaceVariantLight,
-                                style = AppTypography.labelMedium
+                                style = VRTypography.labelMedium
                             )
                             Text(
                                 modifier = Modifier
@@ -519,7 +517,7 @@ fun VoiceLogList(
                                 ,
                                 text = formatTime(message.dateTime),
                                 color = onSurfaceVariantLight,
-                                style = AppTypography.labelMedium
+                                style = VRTypography.labelMedium
                             )
                         }
 
@@ -536,7 +534,7 @@ fun VoiceLogList(
                                 },
                             text = message.text,
                             color = onPrimaryContainerLight,
-                            style = AppTypography.labelSmall
+                            style = VRTypography.labelSmall
                         )
                     }
 
