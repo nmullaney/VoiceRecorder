@@ -74,7 +74,7 @@ import com.osunick.voicerecorder.R
 import com.osunick.voicerecorder.date.DateTimeConstants
 import com.osunick.voicerecorder.model.LogLabels
 import com.osunick.voicerecorder.model.VoiceMessage
-import com.osunick.voicerecorder.ui.theme.Typography
+import com.osunick.voicerecorder.ui.theme.AppTypography
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.ui.theme.onPrimaryContainerLight
 import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
@@ -430,7 +430,7 @@ fun EditVoiceLog(
         Text(
             text = formatDateTime(message.dateTime),
             color = onSurfaceVariantLight,
-            style = Typography.labelMedium
+            style = AppTypography.labelMedium
         )
         OutlinedTextField(
             value = editedText,
@@ -511,7 +511,7 @@ fun VoiceLogList(
                                 ,
                                 text = formatDate(message.dateTime),
                                 color = onSurfaceVariantLight,
-                                style = Typography.labelMedium
+                                style = AppTypography.labelMedium
                             )
                             Text(
                                 modifier = Modifier
@@ -519,7 +519,7 @@ fun VoiceLogList(
                                 ,
                                 text = formatTime(message.dateTime),
                                 color = onSurfaceVariantLight,
-                                style = Typography.labelMedium
+                                style = AppTypography.labelMedium
                             )
                         }
 
@@ -536,7 +536,7 @@ fun VoiceLogList(
                                 },
                             text = message.text,
                             color = onPrimaryContainerLight,
-                            style = Typography.titleMedium
+                            style = AppTypography.labelSmall
                         )
                     }
 

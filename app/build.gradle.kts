@@ -55,6 +55,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.3.2")
     implementation(libs.hilt.android)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.datastore.preferences)
