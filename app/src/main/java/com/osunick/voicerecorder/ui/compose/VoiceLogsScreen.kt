@@ -29,6 +29,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -334,7 +335,7 @@ fun LabelSelectionDropDown(
         }) {
         OutlinedTextField(
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true)
                 .onFocusChanged {
                     isTextFieldFocused = it.isFocused
                     typingValue = ""

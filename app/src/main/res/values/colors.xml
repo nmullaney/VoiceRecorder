@@ -1,8 +1,8 @@
 <resources>
     <color name="translucent_black">#BF000000</color>
-    <color name="md_theme_primary">#2D5B00</color>
+    <color name="md_theme_primary">#FFB848</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
-    <color name="md_theme_primaryContainer">#448300</color>
+    <color name="md_theme_primaryContainer">#FFB848</color>
     <color name="md_theme_onPrimaryContainer">#FFFFFF</color>
     <color name="md_theme_secondary">#815500</color>
     <color name="md_theme_onSecondary">#FFFFFF</color>
