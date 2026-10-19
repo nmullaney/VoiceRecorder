@@ -76,7 +76,6 @@ import com.osunick.voicerecorder.model.VoiceMessage
 import com.osunick.voicerecorder.ui.theme.VRTypography
 import com.osunick.voicerecorder.ui.theme.VoiceRecorderTheme
 import com.osunick.voicerecorder.ui.theme.onPrimaryContainerLight
-import com.osunick.voicerecorder.ui.theme.onSurfaceVariantLight
 import com.osunick.voicerecorder.ui.theme.primaryContainerLight
 import com.osunick.voicerecorder.viewmodel.LogEvent
 import com.osunick.voicerecorder.viewmodel.LogsUiState
@@ -428,7 +427,7 @@ fun EditVoiceLog(
         horizontalAlignment = Alignment.Start) {
         Text(
             text = formatDateTime(message.dateTime),
-            color = onSurfaceVariantLight,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = VRTypography.labelMedium
         )
         OutlinedTextField(
@@ -509,16 +508,16 @@ fun VoiceLogList(
                                     .padding(horizontal = 8.dp, vertical = 0.dp)
                                 ,
                                 text = formatDate(message.dateTime),
-                                color = onSurfaceVariantLight,
-                                style = VRTypography.labelMedium
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = VRTypography.labelLarge
                             )
                             Text(
                                 modifier = Modifier
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ,
                                 text = formatTime(message.dateTime),
-                                color = onSurfaceVariantLight,
-                                style = VRTypography.labelMedium
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = VRTypography.labelLarge
                             )
                         }
 
@@ -535,7 +534,7 @@ fun VoiceLogList(
                                 },
                             text = message.text,
                             color = onPrimaryContainerLight,
-                            style = VRTypography.labelSmall
+                            style = VRTypography.labelMedium
                         )
                     }
 
