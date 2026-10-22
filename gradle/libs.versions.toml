@@ -1,9 +1,9 @@
 [versions]
 adaptive = "1.1.0"
-agp = "9.1.1"
+agp = "9.4.1"
 hiltCompiler = "2.57"
 kotlin = "2.2.10"
-ksp = "2.3.2"
+ksp = "2.3.6"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
