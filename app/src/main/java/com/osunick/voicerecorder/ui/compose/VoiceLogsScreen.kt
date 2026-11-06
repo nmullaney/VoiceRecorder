@@ -1,5 +1,6 @@
 package com.osunick.voicerecorder.ui.compose
 
+import android.graphics.Color
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,14 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -208,11 +206,11 @@ fun EditLogScaffold(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun topAppBarColors() =
-    TopAppBarDefaults.mediumTopAppBarColors(
-    containerColor = MaterialTheme.colorScheme.primary,
-    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-)
+    TopAppBarDefaults.topAppBarColors(
+        containerColor = MaterialTheme.colorScheme.primary,
+        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+        actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+    )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -236,7 +234,7 @@ fun DeleteLogActionBarButton(id: Int, eventsFlow: MutableStateFlow<LogEvent>) {
             eventsFlow.emit(LogEvent.DeleteLog(id))
         }
     }) {
-        Icon(Icons.Filled.Delete, stringResource(id = R.string.deleteall))
+        Icon(painterResource(R.drawable.ic_delete_24), stringResource(id = R.string.deleteall))
     }
 }
 
@@ -334,7 +332,7 @@ fun LabelSelectionDropDown(
         }) {
         OutlinedTextField(
             modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryEditable, enabled = true)
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, enabled = true)
                 .onFocusChanged {
                     isTextFieldFocused = it.isFocused
                     typingValue = ""
@@ -350,7 +348,7 @@ fun LabelSelectionDropDown(
             // Max height prevents the TextField from being covered
             modifier = Modifier
                 .heightIn(max = 200.dp)
-                .exposedDropdownSize(matchTextFieldWidth = true),
+                .exposedDropdownSize(matchAnchorWidth = true),
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
@@ -565,7 +563,7 @@ fun DeleteActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
             eventsFlow.emit(LogEvent.DeleteAllLogs)
         }
     }) {
-        Icon(Icons.Filled.Delete, stringResource(id = R.string.deleteall))
+        Icon(painterResource(R.drawable.ic_delete_24), stringResource(id = R.string.deleteall))
     }
 }
 
@@ -577,7 +575,7 @@ fun ShareActionBarButton(eventsFlow: MutableStateFlow<LogEvent>) {
             eventsFlow.emit(LogEvent.Share)
         }
     }) {
-        Icon(Icons.Filled.Share, stringResource(id = R.string.share))
+        Icon(painterResource(id = R.drawable.ic_share_24), stringResource(id = R.string.share))
     }
 }
 

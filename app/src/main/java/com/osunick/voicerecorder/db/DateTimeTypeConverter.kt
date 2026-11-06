@@ -12,7 +12,7 @@ class DateTimeTypeConverter {
     }
 
     @TypeConverter
-    fun toDateTime(date: ZonedDateTime?): String? {
+    fun toDateTime(date: ZonedDateTime?): String {
         return date?.withZoneSameInstant(ZoneId.of("UTC")).toString()
     }
 }

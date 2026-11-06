@@ -7,7 +7,6 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
-import com.osunick.voicerecorder.VoiceRecorderActivity
 
 class VRSpeechRecognizer(
     private val context: Context,
