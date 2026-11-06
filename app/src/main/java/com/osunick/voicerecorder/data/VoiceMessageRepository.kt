@@ -66,16 +66,16 @@ class VoiceMessageRepository @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun messagePagerFlow(): Flow<PagingData<VoiceMessage>> =
-        dataStore.data.flatMapLatest {
+        dataStore.data.flatMapLatest { preferences ->
             Pager(
                 PagingConfig(pageSize = PAGE_SIZE)
             ) {
-                val selectedLabel = getSelectedLabel(it)
+                val selectedLabel = getSelectedLabel(preferences)
                 pagingDataSource = LogPagingDataSource(selectedLabel, logDao)
                 pagingDataSource!!
             }.flow.map { pagingData ->
-                pagingData.map {
-                    MessageMapper.mapToVoiceMessage(it)
+                pagingData.map { logEntity ->
+                    MessageMapper.mapToVoiceMessage(logEntity)
                 }
             }
         }
